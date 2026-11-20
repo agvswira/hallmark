@@ -19,3 +19,4 @@ coverage/
 .vercel/
 .DS_Store
 *.log
+.cache/

@@ -15,7 +15,8 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Skills | `modern-web-guidance` for frontend code (from the web milestone on); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz), all passing |
+| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 25 verifier tests, 13 of them end-to-end on a local chain; all passing |
+| Live checks | Two public contracts on `qorechain-diana` verified from source, deployers and PQC use confirmed ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
 ## The split, in one table
@@ -68,6 +69,9 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | Both official templates create a `.env` but ship no `.gitignore`; a plain `git add` would have staged it | Listing the scaffolded files before the first `git add` | Root `.gitignore`, confirmed with `git check-ignore`; the pre-commit scan also blocks `.env` files |
 | The first plan named Next.js, but the official viem-wagmi template is Vite + React | Reading the scaffolded `package.json` | Plan changed to Vite with serverless API routes |
 | `@foundry-rs/forge`'s postinstall uses Unix-only syntax and fails on Windows | The install failed | `contracts/scripts/forge.mjs` runs the packaged binary directly |
+| The agent cached the solc compiler as `.js` inside an ES-module package, so Node loaded it as ESM | 10 of 11 end-to-end tests failed on the first run | Cache as `.cjs`; all tests pass |
+| The PQC report pointed at a constant's declaration, not at the functions calling the precompile | Reading the first live result on diana | Follow named constants to their uses, plus a regression test; the live rerun names both functions |
+| `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
 
 This table grows with the project. Commit hashes are added once the commits exist.
 
@@ -80,6 +84,7 @@ D1 to D4 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
 cd contracts && npm install && npm run forge-std && npm test   # 30 tests
+cd packages/verifier && npm install && npm test             # 25 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
 ```
 

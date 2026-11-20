@@ -62,3 +62,32 @@ approved the plan.
   same correction.
 
 **Checked:** `npm test` in `contracts/`: 30 passed, 0 failed (fuzz: 256 runs).
+
+## 2026-11-21 (later): the verification engine
+
+**Agent (builder):**
+- Created `packages/verifier` on `@ethereum-sourcify/lib-sourcify` (MIT) with a compiler adapter
+  that downloads official soljson builds, checks them against the SHA-256 in `list.json`, and caches them.
+- Wrote the verification flow: chain id check, candidate selection by code length, full / partial /
+  none levels, and the deployer taken only from a creation transaction that matches this contract.
+- Wrote the PQC detector: PUSH values in the deployed code (so literals and immutables are both
+  seen), excluding the metadata trailer, plus source references with the enclosing function.
+- Wrote 25 tests; 13 of them deploy real compiled contracts to a local anvil chain (chain id 9800).
+- Wrote `scripts/verify-live.ts` and ran it against two public contracts on diana
+  (results in `packages/verifier/README.md`).
+
+**Learned / went wrong:**
+- The first test run failed 10 of 11 end-to-end tests: the agent cached soljson as `.js` inside an
+  ES-module package, so Node loaded the CommonJS compiler as ESM (`__dirname is not defined`). Fixed
+  by caching as `.cjs`; all tests passed after.
+- The first live run on a contract that calls `pqcKeyStatus` pointed only at the constant's
+  declaration, not at the functions that call it. The detector now follows a named constant to its
+  uses; the live run then named `hasPqcKey` and `_requirePqcKeyRegistered`. A regression test covers it.
+- A live run with the compiler's default `evmVersion` gave no match; the contract was built with
+  Hardhat 2, whose default for 0.8.24 is `paris`. With `paris` it matched. This is why the web app
+  will ask for the build-info file rather than loose sources.
+- `.cache/` (compiler downloads) was not covered by the root `.gitignore`; added before committing.
+
+**Checked:** `npm test` in `packages/verifier`: 25 passed. `npm test` in `contracts`: 30 passed.
+`tsc --noEmit` clean. Live: two diana contracts, partial matches, both deployers equal to the
+projects' own deployment records.

@@ -10,14 +10,15 @@ a report of the QoreChain post-quantum precompiles the contract calls.
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> Status: early build (21 Nov 2026). The registry contract and its tests are done; the
-> verification engine, web app and CLI are in progress. This README is updated as parts land.
+> Status (21 Nov 2026): the registry contract and the verification engine are done and tested,
+> and the engine has verified public contracts on diana. The web app and CLI are in progress.
 
 ## What is in the repository
 
 | Path | What |
 |---|---|
 | `contracts/` | `HallmarkRegistry`: the on-chain record of verified contracts, with Foundry tests |
+| `packages/verifier/` | The verification engine: recompile, match against diana, PQC report ([details](packages/verifier/README.md)) |
 | `web/` | The Hallmark web app (Vite + React + wagmi, QoreX wallet) |
 | `docs/ai/` | The log, ledger and reports behind [AI_USAGE.md](AI_USAGE.md) |
 | `scripts/` | Repository tooling (pre-commit secret scan) |
@@ -61,6 +62,8 @@ Foundry install is needed (its npm postinstall step does not run on Windows).
 - [`@qorechain/sdk`](https://www.npmjs.com/package/@qorechain/sdk),
   [`@qorechain/evm`](https://www.npmjs.com/package/@qorechain/evm),
   [`@qorechain/qorex-rainbowkit`](https://www.npmjs.com/package/@qorechain/qorex-rainbowkit).
+- [`@ethereum-sourcify/lib-sourcify`](https://github.com/argotorg/sourcify) (MIT) for bytecode matching, and
+  [solc-js](https://github.com/ethereum/solc-js) (MIT) with the official soljson builds.
 - [forge-std](https://github.com/foundry-rs/forge-std) (MIT/Apache-2.0) and
   [Foundry](https://github.com/foundry-rs/foundry) via `@foundry-rs/forge`.
 

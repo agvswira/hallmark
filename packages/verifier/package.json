@@ -1,0 +1,30 @@
+{
+  "name": "@hallmark/verifier",
+  "version": "0.1.0",
+  "description": "Hallmark verification engine: recompile Solidity sources and match them against QoreChain bytecode, with a PQC precompile report.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "verify:live": "tsx scripts/verify-live.ts"
+  },
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@ethereum-sourcify/lib-sourcify": "^3.8.1",
+    "solc": "^0.8.39",
+    "viem": "^2.58.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  },
+  "private": true,
+  "optionalDependencies": {
+    "@foundry-rs/anvil-win32-amd64": "1.7.1",
+    "@foundry-rs/anvil-linux-amd64": "1.7.1",
+    "@foundry-rs/anvil-darwin-arm64": "1.7.1"
+  }
+}
