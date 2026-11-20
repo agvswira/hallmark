@@ -4,6 +4,10 @@ Hallmark is built by one student developer working with an AI coding agent. This
 the workflow, the work the AI generated and what the human decided, and it is kept from the first
 commit. Every claim points at a file, a commit, a test or a transaction you can check.
 
+**The problem it starts from:** a contract deployed on QoreChain cannot be checked against its
+source. The explorer has no source verification, and the fest FAQ notes that Solidity PQC features
+are checked in repositories by hand. Hallmark makes that check automatic and public.
+
 | | |
 |---|---|
 | Agent | Claude Code (desktop app), model Claude Opus 5.5 |
@@ -18,7 +22,7 @@ commit. Every claim points at a file, a commit, a test or a transaction you can 
 
 | | The AI did | The human did |
 |---|---|---|
-| Direction | Researched the fest rules, prizes, docs and all 104 registered projects; proposed candidate ideas with the competition each would face; checked the source-verification gap against primary sources | Chose the category, chose Hallmark and its name, decided the product shape (web app plus CLI) |
+| Direction | Researched the fest rules and the QoreChain docs; confirmed the problem Hallmark solves (no source verification on QoreChain, PQC features checked by hand) against primary sources; proposed candidate ideas | Chose the category, chose Hallmark and its name, decided the product shape (web app plus CLI) |
 | Code | Writes the contracts, tests, scripts, verification engine, web app and CLI | Reviews the work, makes the product decisions, tries the app with the real QoreX wallet |
 | Git | Prepares each commit and runs it under the owner's identity, on the owner's instruction | Owns the repository; decides when to push and when it goes public |
 | Chain | Creates throwaway testnet accounts, deploys and runs scripted checks | Signs in where an account is needed (fest site, faucet), uses QoreX for the claim flow |

@@ -3,18 +3,20 @@
 Dated record of each working session: what the agent generated, what the owner decided, and what
 was learned. Newest entries at the bottom. Agent: Claude Code (desktop app), model Claude Opus 5.5.
 
-## 2026-11-20: research and choosing the project
+## 2026-11-20: the problem and choosing the project
+
+**The problem.** A contract deployed on QoreChain cannot be checked against its source. The fest
+FAQ states that the explorer has no source verification and no Etherscan-compatible API, and that
+the Solidity PQC features (`pqcVerify`, `pqcKeyStatus`) cannot be verified automatically, so jurors
+check them in repositories by hand. Sourcify, the open verification service, has no entry for chain
+9800 or 9801.
 
 **Agent (research):**
-- Read the fest site (home, prizes, rules, start, FAQ, kits) and the QoreChain docs sitemap,
-  including the EVM precompile reference and the Build Before Q-Day guides.
-- Read the project pages of all 104 registered projects and grouped the 20 Quantum Pass entries by
-  type (account checkers, notaries and certificates, chance games, education games, tools).
-- Proposed candidate ideas, each with the gap it fills and the competing projects it would face.
-- For the source-verification candidate, checked the gap against primary sources: the fest FAQ states
-  that the explorer has no source verification and no Etherscan-compatible API, and that jurors check
-  Solidity PQC features in repositories by hand; Sourcify's chain list has no entry for chain 9800 or
-  9801; a keyword scan of all 104 project pages found no project doing source verification.
+- Read the fest rules, prizes and kits, and the QoreChain docs, including the EVM precompile
+  reference and the Build Before Q-Day guides.
+- Confirmed the problem above against those primary sources and Sourcify's chain list.
+- Proposed candidate ideas for the Quantum Pass category, among them a source-verification tool
+  that addresses this problem.
 
 **Owner decided:**
 - D1: enter the Quantum Pass category; register as students (Quantum Campus) and as AI-native.
@@ -23,10 +25,9 @@ was learned. Newest entries at the bottom. Agent: Claude Code (desktop app), mod
 - D4: commits under the owner's name only, with no AI attribution line; AI use is documented here
   from the first commit instead.
 
-**Agent (planning the disclosure):** read the 73 `AI_USAGE.md` files published by other fest
-projects to see what is already common, and proposed a disclosure built on checkable evidence
-(this log, a machine-readable ledger, review and red-team reports) rather than narrative alone.
-The owner approved the plan.
+**Agent (planning the disclosure):** proposed a disclosure built on checkable evidence (this log, a
+machine-readable ledger, review and red-team reports) rather than narrative alone. The owner
+approved the plan.
 
 ## 2026-11-21: repository, registry contract, guardrails
 
