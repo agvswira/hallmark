@@ -15,7 +15,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 32 verifier tests, 14 of them end-to-end on a local chain; all passing |
+| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 40 verifier tests, 14 of them end-to-end on a local chain; all passing |
 | Live checks | Registry live on `qorechain-diana`; Hallmark verified, recorded and claimed itself (full match, claim checked by the live `pqcKeyStatus` precompile); two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
@@ -77,6 +77,8 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | A local run would have written a `localhost` URL into a permanent on-chain record | Reviewing what `recordVerification` stores before the first local run | Recording needs `HALLMARK_PUBLIC_URL`; local runs verify and store but never write on chain |
 | The planned server would have stopped recording a few hours after each manual window opening (17,280 blocks is about 5 hours on the testnet) | Reading the SDK's window notes while planning the deploy | Registry-scoped windows opened by the server when needed, tested live (see the log) |
 | `window.ts` and `registry.ts` imported each other with a load-time constant | Reviewing the new module before running it | Shared constants moved to `constants.ts` |
+| With no source match, the precompile report said "none", although precompile use is read from the deployed code | A tampered build-info in the first CLI run | Always read from the deployed code, plus a test |
+| The CLI exited with a libuv assertion on Windows (exit 127 instead of 3) | Checking exit codes in the CLI test run | Set the exit code and exit on a short timer |
 | `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
 
 This table grows with the project. Commit hashes are added once the commits exist.
@@ -90,13 +92,14 @@ D1 to D6 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
 cd contracts && npm install && npm run forge-std && npm test   # 30 tests
-cd packages/verifier && npm install && npm test             # 32 tests, local anvil chain
+cd packages/verifier && npm install && npm test             # 40 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
+node packages/cli/bin/hallmark.mjs check 0xa901ee7138266abc456c8d717fa94b043078b8c4 --build-info <file>   # recompile and compare with the record
 ```
 
 ## Limits
 
-- The registry trusts one verifier account to run the comparison honestly. The planned CLI lets
-  anyone rerun a verification locally and compare it with the on-chain record.
+- The registry trusts one verifier account to run the comparison honestly. The `hallmark check` CLI
+  lets anyone rerun a verification on their own machine and compare it with the on-chain record.
 - The precompile is mocked in local tests; its behaviour on the live testnet is checked separately
   once the registry is deployed.

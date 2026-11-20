@@ -204,3 +204,26 @@ width with no horizontal overflow.
 **Checked (live on diana):** the old unscoped window was replaced by a registry-scoped one; a second
 run kept it; a record and a claim went through it (200 to 198 transactions left); a 1 wei transfer to
 another address from the same account was refused and used none of the window.
+
+## 2026-11-21 (morning UTC): the hallmark CLI
+
+**Agent (builder):**
+- Wrote `compareWithRecord`, which checks a local run against the on-chain record (code matches, code
+  unchanged, match level, source hash, post-quantum report, deployer) and gives a verdict.
+- Wrote the `hallmark` CLI: `status`, `check` (recompile here, from a local build-info or from the
+  sources a Hallmark server stores; the server only supplies input, the verdict is computed locally),
+  and `verify` (submit a build). Bundled with esbuild.
+
+**Checked live:** the registry's own build-info confirmed every field; three tampered copies of it gave
+the expected verdicts (a comment change: differs; a logic change and a redirected `pqcKeyStatus` call:
+contradicted); sources fetched from the dev server and recompiled locally confirmed.
+
+**Learned / went wrong:**
+- With no source match, the report said the contract used no precompile, which was wrong: precompile use
+  is a fact of the deployed code. It is now always read from the deployed code; a test covers it.
+- On Windows, `process.exit()` right after the last request aborted with a libuv assertion (exit 127
+  instead of 3). The CLI now sets the exit code and exits on a short timer.
+- Each run took about 7 s, almost all of it starting tsx and loading the SDKs; the esbuild bundle starts
+  in about 1 s.
+- A one-line shell command for these doc updates failed on nested quotes before running anything; it was
+  split into files.

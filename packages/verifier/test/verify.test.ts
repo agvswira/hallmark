@@ -53,6 +53,8 @@ describe("verifyContract", () => {
     const r = await run(d.address, build({ "Greeter.sol": GREETER_CHANGED }), { contract: "Greeter.sol:Greeter" });
     expect(r.match).toBe("none");
     expect(r.attempts.length).toBe(1);
+    // The precompile report comes from the deployed code, with or without a match.
+    expect(r.pqc).toEqual({ usesVerify: false, usesKeyStatus: false, flags: 0, sourceRefs: [] });
   }, 120_000);
 
   it("gives no match when the optimizer settings differ", async () => {

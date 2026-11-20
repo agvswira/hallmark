@@ -10,8 +10,9 @@ a report of the QoreChain post-quantum precompiles the contract calls.
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> Status (21 Nov 2026): registry live on diana, Hallmark verified and claimed itself, and the web
-> app runs locally. Next: deploy the web app, the CLI, and the AI review and red-team passes.
+> Status (21 Nov 2026): registry live on diana; Hallmark verified and claimed itself; web app and
+> `hallmark` CLI working; the verifier keeps a registry-scoped EVM window open on its own. Next: deploy
+> the web app, then the AI review and red-team passes.
 
 ## What is in the repository
 
@@ -19,6 +20,7 @@ Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass categor
 |---|---|
 | `contracts/` | `HallmarkRegistry`: the on-chain record of verified contracts, with Foundry tests |
 | `packages/verifier/` | The verification engine: recompile, match against diana, PQC report ([details](packages/verifier/README.md)) |
+| `packages/cli/` | `hallmark check`: recompile on your own machine and compare with the on-chain record ([details](packages/cli/README.md)) |
 | `web/` | The web app and API: verify, registry, contract pages with the PQC report, claim with QoreX, README badge ([details](web/README.md)) |
 | `docs/ai/` | The log, ledger and reports behind [AI_USAGE.md](AI_USAGE.md) |
 | `scripts/` | Repository tooling (pre-commit secret scan) |

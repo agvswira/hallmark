@@ -122,7 +122,9 @@ export async function verifyContract(opts: VerifyOptions): Promise<VerifyResult>
     }
   }
 
-  return { ...base, match: "none", runtimeMatch: null, creationMatch: null, attempts };
+  // The precompile report reads the deployed code, so it holds even without a source match
+  // (source references need matched sources, so there are none here).
+  return { ...base, match: "none", runtimeMatch: null, creationMatch: null, pqc: { ...detectPqc(onchain), sourceRefs: [] }, attempts };
 }
 
 function pickCandidates(opts: VerifyOptions, onchainHexLength: number): ContractRef[] {
