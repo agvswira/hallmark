@@ -124,3 +124,31 @@ wallet must never go through the agent or the server.
 
 **Agent:** transferred ownership (`0x9fc9f88e50befcdd4dbcf1a44604b6e3261c436ee3f6a2a8f6d06fe42b295d12`)
 and read it back: owner `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, verifier unchanged.
+
+## 2026-11-21 (night, later): API and web app
+
+**Agent (builder):**
+- Wrote the API as Vercel Functions (`web/api/`) and a small Vite plugin that runs them in development.
+- Wrote the web app: registry home, verify form, contract page with the PQC report, claim with QoreX,
+  README badge and verified source.
+- Before writing any UI code, consulted the `modern-web-guidance` skill and applied these guides:
+  `forms`, `validate-input-after-interaction`, `copy-button`, `dark-mode`, `responsive-table`,
+  `spinner`. Searched `tabs` too and chose plain sections instead.
+
+**Design choices made by the agent, open to the owner's review:**
+- The browser strips the compiler output from the build-info file (17 MB for this repository) and sends
+  only sources and settings (901 KB), under Vercel's 4.5 MB request limit.
+- Local runs never write on chain: the on-chain record stores the page URL, and a development server
+  would have written a permanent `localhost` address. Recording needs `HALLMARK_PUBLIC_URL`.
+
+**Learned / went wrong:**
+- The first contract page opened the deploy script first instead of the verified contract; sources are
+  now ordered verified file, project, tests and scripts, libraries.
+- The copy button reported "Copy failed" in the agent's browser pane: the pane denies clipboard write
+  permission (`NotAllowedError`). The failure path behaved as designed; copying itself still has to
+  be checked in a normal browser.
+- Not tested yet: uploading a file through the page (the agent's browser cannot pick files; the same
+  request was sent to the API directly), and the claim flow with a real QoreX wallet.
+
+**Checked:** typecheck clean in `web/` and `packages/verifier`; the pages above in the browser pane
+at desktop and phone width.

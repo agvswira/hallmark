@@ -28,5 +28,9 @@
     "@foundry-rs/anvil-win32-amd64": "1.7.1",
     "@foundry-rs/anvil-linux-amd64": "1.7.1",
     "@foundry-rs/anvil-darwin-arm64": "1.7.1"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./abi": "./src/registryAbi.ts"
   }
 }

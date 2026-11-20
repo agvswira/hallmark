@@ -1,86 +1,43 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import {
-  QORECHAIN_REST_ENDPOINTS,
-  classifyEvmWindowRejection,
-  qorechainTestnet,
-  evmWindowStatus,
-  type EvmWindowRejection,
-} from "@qorechain/evm";
-import { useQuery } from "@tanstack/react-query";
-import { formatEther } from "viem";
-import { useAccount, useBalance, useBlockNumber, useSendTransaction } from "wagmi";
-
-const REMEDY: Record<EvmWindowRejection, string> = {
-  "no-pqc-key": "This account has no registered ML-DSA-87 key. Register one on the native lane first.",
-  "no-window": "No EVM authorisation window is open. Open one on the native lane, then retry.",
-  exhausted: "The window has run out of blocks, transactions or value. Open a new one.",
-  invalid: "The chain refused the window parameters.",
-};
-
-/**
- * The REST API of each chain, through the dev server's proxy (vite.config.ts):
- * the public REST endpoints send no CORS headers. Same chains as
- * QORECHAIN_REST_ENDPOINTS.
- */
-const REST_PROXY: Record<number, string | undefined> = Object.fromEntries(
-  Object.keys(QORECHAIN_REST_ENDPOINTS).map((id) => [
-    Number(id),
-    Number(id) === qorechainTestnet.id ? "/lcd-testnet" : "/lcd-mainnet",
-  ]),
-);
-
-/** The account's EVM authorisation window, read over the native-lane REST API. */
-function WindowStatus({ address, chainId }: { address: `0x${string}`; chainId: number }) {
-  const rest = REST_PROXY[chainId];
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["evm-window", chainId, address],
-    queryFn: () => evmWindowStatus({ rest: rest!, address }),
-    enabled: rest !== undefined,
-    refetchInterval: 10_000,
-  });
-  if (!rest) return <p>Unknown network.</p>;
-  if (isLoading) return <p>Reading the EVM window...</p>;
-  if (error) return <p>Could not read the window: {error.message}</p>;
-  if (!data?.found) {
-    return <p>EVM window: none. Sending from this account is refused until one is opened.</p>;
-  }
-  return (
-    <p>
-      EVM window: {data.live ? "live" : "not usable"} ({data.remainingBlocks.toString()} blocks,{" "}
-      {data.remainingTxs.toString()} transactions, {data.remainingValue.toString()} uqor left)
-    </p>
-  );
-}
+import { Contract } from "./pages/Contract.js";
+import { Home } from "./pages/Home.js";
+import { Verify } from "./pages/Verify.js";
+import { Link, usePath, useCopyCommands } from "./lib/ui.js";
 
 export function App() {
-  const { address, chainId, isConnected } = useAccount();
-  const { data: balance } = useBalance({ address });
-  const { data: block } = useBlockNumber({ watch: true });
-  const send = useSendTransaction();
-  const rejection = send.error ? classifyEvmWindowRejection(send.error) : undefined;
+  const path = usePath();
+  useCopyCommands();
+
+  const contract = path.match(/^\/c\/(0x[0-9a-fA-F]{40})\/?$/);
+  let page: React.ReactNode;
+  if (path === "/") page = <Home />;
+  else if (path === "/verify") page = <Verify />;
+  else if (contract) page = <Contract address={contract[1].toLowerCase()} />;
+  else page = <><h1>Page not found</h1><p><Link to="/">Back to Hallmark</Link></p></>;
+
+  const current = (to: string) => (path === to ? { "aria-current": "page" as const } : {});
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", maxWidth: 720, margin: "2rem auto", padding: "0 1rem" }}>
-      <h1>QoreChain EVM dApp</h1>
-      <ConnectButton />
-      <p>Latest block: {block?.toString() ?? "..."}</p>
-
-      {isConnected && address && chainId ? (
-        <section>
-          <p>
-            Account <code>{address}</code> on chain {chainId}
-          </p>
-          <p>Balance: {balance ? `${formatEther(balance.value)} QOR` : "..."}</p>
-          <WindowStatus address={address} chainId={chainId} />
-          <button type="button" disabled={send.isPending} onClick={() => send.sendTransaction({ to: address, value: 0n })}>
-            Send 0 QOR to yourself
-          </button>
-          {send.data && <p>Sent: {send.data}</p>}
-          {send.error && <p>Refused: {rejection ? REMEDY[rejection] : send.error.message}</p>}
-        </section>
-      ) : (
-        <p>Connect a wallet to read your account.</p>
-      )}
-    </main>
+    <>
+      <header className="site-header">
+        <Link to="/" className="brand">
+          <span className="brand-mark" aria-hidden="true">H</span>
+          Hallmark
+        </Link>
+        <nav className="site-nav" aria-label="Main">
+          <Link to="/" {...current("/")}>Registry</Link>
+          <Link to="/verify" {...current("/verify")}>Verify</Link>
+        </nav>
+        <ConnectButton chainStatus="none" showBalance={false} />
+      </header>
+      <main>{page}</main>
+      <footer className="site-footer">
+        HallmarkRegistry on qorechain-diana:{" "}
+        <a className="mono" href="https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4">0xa901…b8c4</a>
+        {" · "}
+        <a href="https://github.com/agvswira/hallmark">Source on GitHub</a>
+        {" · "}Built for Build Before Q-Day.
+      </footer>
+    </>
   );
 }

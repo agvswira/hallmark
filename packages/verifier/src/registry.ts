@@ -43,7 +43,7 @@ export interface OnchainHallmark {
   claim?: { claimant: Address; claimedAt: number; possessionProven: boolean; repo: string };
 }
 
-export function registryReader(rpcUrl = diana.rpcUrls.default.http[0], registry = REGISTRY_ADDRESS) {
+export function registryReader(rpcUrl: string = diana.rpcUrls.default.http[0], registry: Address = REGISTRY_ADDRESS) {
   const client = createPublicClient({ chain: diana, transport: http(rpcUrl) }) as PublicClient;
   const read = <T>(functionName: string, args: unknown[] = []) =>
     client.readContract({ address: registry, abi: hallmarkRegistryAbi, functionName: functionName as any, args: args as any }) as Promise<T>;
