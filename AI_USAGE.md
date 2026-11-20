@@ -12,7 +12,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 |---|---|
 | Agent | Claude Code (desktop app), model Claude Opus 5.5 |
 | Agent tools | Shell, file editing, a built-in browser for reading the fest site and docs, web fetch, GitHub CLI (read-only research) |
-| Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner); `security-review` and `code-review` for the reviewer role |
+| Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
 | Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 27 verifier tests, 14 of them end-to-end on a local chain; all passing |
@@ -23,6 +23,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 
 | | The AI did | The human did |
 |---|---|---|
+| Design | Picked the logo from the owner's shortlist, chose the colour roles, built the layout from the owner's style reference | Brought the style reference and logo concepts (made with another AI tool), shortlisted the logo |
 | Direction | Researched the fest rules and the QoreChain docs; confirmed the problem Hallmark solves (no source verification on QoreChain, PQC features checked by hand) against primary sources; proposed candidate ideas | Chose the category, chose Hallmark and its name, decided the product shape (web app plus CLI) |
 | Code | Writes the contracts, tests, scripts, verification engine, web app and CLI | Reviews the work, makes the product decisions, tries the app with the real QoreX wallet |
 | Git | Prepares each commit and runs it under the owner's identity, on the owner's instruction | Owns the repository; decides when to push and when it goes public |
@@ -80,7 +81,7 @@ This table grows with the project. Commit hashes are added once the commits exis
 
 ## Owner decisions
 
-D1 to D5 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
+D1 to D6 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
 
 ## Check it yourself
 

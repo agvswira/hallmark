@@ -9,7 +9,7 @@ function svg(left: string, right: string, color: string): string {
   const rw = w(right);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${lw + rw}" height="20" role="img" aria-label="${esc(`${left}: ${right}`)}">
 <title>${esc(`${left}: ${right}`)}</title>
-<rect width="${lw}" height="20" fill="#2b2f36"/><rect x="${lw}" width="${rw}" height="20" fill="${color}"/>
+<rect width="${lw}" height="20" fill="#15171b"/><rect x="${lw}" width="${rw}" height="20" fill="${color}"/>
 <g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">
 <text x="${lw / 2}" y="14">${esc(left)}</text><text x="${lw + rw / 2}" y="14">${esc(right)}</text></g></svg>`;
 }
@@ -18,18 +18,19 @@ function svg(left: string, right: string, color: string): string {
 export async function GET(request: Request): Promise<Response> {
   const address = addressParam(request);
   let right = "invalid address";
-  let color = "#8a8f98";
+  let color = "#5f6672";
   if (address) {
     const h = await reader().get(address).catch(() => undefined);
     if (!h) {
       right = "not hallmarked";
     } else if (!h.isCurrent) {
       right = "code changed";
-      color = "#b3261e";
+      color = "#c23b3b";
     } else {
       const pq = h.pqcFlags ? " · PQ-guarded" : "";
       right = `${h.match === "full" ? "full match" : "partial match"}${pq}`;
-      color = h.match === "full" ? "#1a7f37" : "#9a6700";
+      // White text on these keeps at least 4.5:1 contrast.
+      color = h.match === "full" ? "#0f7a52" : "#a14f0b";
     }
   }
   return new Response(svg("Hallmark", right, color), {

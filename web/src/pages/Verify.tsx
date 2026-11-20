@@ -56,13 +56,16 @@ export function Verify() {
 
   return (
     <>
-      <h1>Verify a contract</h1>
-      <p className="lede">
-        Upload the build-info file your toolchain wrote when it compiled the contract. Hallmark compiles the same input
-        with the same compiler and compares it with the code deployed on <code>qorechain-diana</code>.
-      </p>
+      <div className="page-head">
+        <span className="eyebrow">Verify</span>
+        <h1>Hallmark a contract</h1>
+        <p className="lede">
+          Upload the build-info file your toolchain wrote when it compiled the contract. Hallmark compiles the same input
+          with the same compiler and compares it with the code deployed on <code>qorechain-diana</code>.
+        </p>
+      </div>
 
-      <form ref={form} className="form panel" method="post" action="/api/verify" onSubmit={onSubmit} aria-labelledby="verify-title">
+      <form ref={form} className="form card" method="post" action="/api/verify" onSubmit={onSubmit} aria-labelledby="verify-title">
         <h2 id="verify-title" className="visually-hidden">Verification details</h2>
 
         <div className="field">
@@ -168,7 +171,7 @@ function VerifyOutcome({ response }: { response: VerifyResponse }) {
   const r = response.result;
   if (r.match === "none") {
     return (
-      <section className="panel" aria-labelledby="outcome-title">
+      <section className="card" aria-labelledby="outcome-title">
         <h2 id="outcome-title">No match</h2>
         <p>The compiled code does not match the code at {short(r.address, 8)}. What was tried:</p>
         <ul>
@@ -186,7 +189,7 @@ function VerifyOutcome({ response }: { response: VerifyResponse }) {
     );
   }
   return (
-    <section className="panel" aria-labelledby="outcome-title">
+    <section className="card" aria-labelledby="outcome-title">
       <h2 id="outcome-title">
         <MatchTag match={r.match} /> {r.contract?.name}
       </h2>

@@ -75,6 +75,7 @@ Foundry install is needed (its npm postinstall step does not run on Windows).
   [`@qorechain/qorex-rainbowkit`](https://www.npmjs.com/package/@qorechain/qorex-rainbowkit).
 - [`@ethereum-sourcify/lib-sourcify`](https://github.com/argotorg/sourcify) (MIT) for bytecode matching, and
   [solc-js](https://github.com/ethereum/solc-js) (MIT) with the official soljson builds.
+- [Manrope](https://github.com/sharanda/manrope) (SIL Open Font License) via [Fontsource](https://fontsource.org), self-hosted.
 - [forge-std](https://github.com/foundry-rs/forge-std) (MIT/Apache-2.0) and
   [Foundry](https://github.com/foundry-rs/foundry) via `@foundry-rs/forge`.
 

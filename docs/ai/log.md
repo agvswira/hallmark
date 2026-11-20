@@ -152,3 +152,34 @@ and read it back: owner `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, verifier u
 
 **Checked:** typecheck clean in `web/` and `packages/verifier`; the pages above in the browser pane
 at desktop and phone width.
+
+## 2026-11-21 (night, last): visual redesign
+
+**Owner decided (D6):** brought a written style reference (a dark, minimal developer-tool look) and
+four geometric logo concepts, prepared with another AI tool; shortlisted concepts 1 (H-Seal) and
+4 (Proof Vault), and asked the agent to pick one and the colours, using the reference as a guide
+rather than a copy.
+
+**Agent (builder):**
+- Picked the H-Seal: it still reads as an H at favicon size, and its parts map to the product (left
+  pillar the repository, right pillar the chain, the punched seal the verification).
+- Kept the logo's palette with one job per colour: assay gold for actions and focus, verified mint for
+  full matches only, cobalt for the brand and post-quantum tags (lightened for text contrast), apricot
+  for partial matches, red for errors and changed code.
+- Rebuilt the home page: hero with lookup, a proof diagram drawn from the newest real record, registry
+  numbers read from the chain, the five steps as ruled rows, and two closing cards (dark and gold).
+- Self-hosted Manrope (OFL, via Fontsource) with `font-size-adjust: from-font`; the site is dark-only
+  and declares `color-scheme: dark`.
+- Consulted `modern-web-guidance` again: `scroll-entry-exit-effects` (section reveal, decorative, so
+  no script fallback), `dynamic-sibling-animations` (hero stagger with `sibling-index()` and an
+  `:nth-child` fallback), `visually-stable-font-fallbacks`, `typography` (clamp() maximum within
+  2.5 times the minimum).
+
+**Learned / went wrong:**
+- The hero's full-bleed grid made the page scroll sideways (`100vw` includes the scrollbar); fixed
+  with `overflow-x: clip` on `main`, which keeps the sticky header working.
+- Five step cards wrapped as four and one; replaced with ruled rows that read in order at any width.
+- The proof diagram's connectors stacked vertically; moved them into the grid between the cards.
+
+**Checked:** typecheck clean; home, verify and record pages in the browser pane at desktop and phone
+width with no horizontal overflow.

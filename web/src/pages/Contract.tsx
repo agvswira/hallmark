@@ -62,19 +62,21 @@ function ContractView({ data }: { data: ContractResponse }) {
 
   return (
     <>
-      <p className="hint">Hallmark record</p>
-      <h1>
-        {name ?? "Contract"} <span className="mono" style={{ fontSize: "0.5em" }}>{data.address}</span>
-      </h1>
-      <p className="actions">
-        <MatchTag match={match} current={h?.isCurrent ?? true} />
-        <PqTag flags={flags} />
-        {!h && <span className="tag partial">Not recorded on chain</span>}
-      </p>
+      <div className="record-head">
+        <span className="eyebrow">Hallmark record</span>
+        <h1>{name ?? "Contract"}</h1>
+        <span className="addr">{data.address}</span>
+        <p className="actions">
+          <MatchTag match={match} current={h?.isCurrent ?? true} />
+          <PqTag flags={flags} />
+          {!h && <span className="tag partial">Not recorded on chain</span>}
+        </p>
+      </div>
 
+      <div className="record-grid">
       <section className="facts-wrap" aria-labelledby="facts-title">
         <h2 id="facts-title">Verification</h2>
-        <div className="panel">
+        <div className="card">
           <dl className="facts">
             {r?.contract && (<><dt>Source</dt><dd><code>{r.contract.path}:{r.contract.name}</code></dd></>)}
             <dt>Compiler</dt><dd><code>solc {h?.compiler ?? r?.compilerVersion}</code></dd>
@@ -106,6 +108,7 @@ function ContractView({ data }: { data: ContractResponse }) {
       </section>
 
       {data.stored && <Sources sources={data.stored.input.sources} main={r?.contract?.path} />}
+      </div>
     </>
   );
 }
@@ -115,7 +118,7 @@ function PqcReport({ flags, refs }: { flags: number; refs: SourceRef[] }) {
   return (
     <section aria-labelledby="pqc-title">
       <h2 id="pqc-title">Post-quantum report</h2>
-      <div className="panel">
+      <div className="card">
         {flags === 0 ? (
           <p>The deployed code does not call QoreChain's post-quantum precompiles.</p>
         ) : (
@@ -180,7 +183,7 @@ function ClaimSection({ data }: { data: ContractResponse }) {
     return (
       <section aria-labelledby="claim-title">
         <h2 id="claim-title">Repository</h2>
-        <div className="panel">
+        <div className="card">
           <p>
             Claimed by the deployer: <a href={h.claim.repo}>{h.claim.repo}</a>
           </p>
@@ -200,7 +203,7 @@ function ClaimSection({ data }: { data: ContractResponse }) {
   return (
     <section aria-labelledby="claim-title">
       <h2 id="claim-title">Claim this contract</h2>
-      <div className="panel">
+      <div className="card">
         <p>
           The deployer, <code>{short(h.deployer, 8)}</code>, can link this contract to its repository. The registry only
           accepts the claim from an account with a registered ML-DSA-87 key.
