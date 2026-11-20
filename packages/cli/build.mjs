@@ -1,6 +1,6 @@
 // Bundles the CLI into one ES module so it starts in about a second instead of compiling
-// TypeScript through tsx on every run. solc's emscripten builds are loaded at run time with
-// require(), so the bundle gets a require() bound to its own location.
+// TypeScript through tsx on every run. @hallmark/verifier is already a self-contained bundle
+// with its own require() for the solc builds, so no banner is added here.
 import { build } from "esbuild";
 
 await build({
@@ -11,5 +11,4 @@ await build({
   target: "node20",
   outfile: "dist/hallmark.mjs",
   logLevel: "warning",
-  banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
 });

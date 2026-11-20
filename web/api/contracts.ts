@@ -13,5 +13,5 @@ export async function GET(request: Request): Promise<Response> {
   const targets = end > start ? (await r.targets(start, end - start)).reverse() : [];
   const items = (await Promise.all(targets.map((t) => r.get(t)))).filter(Boolean);
 
-  return json({ total, page, limit, items }, 200, { "cache-control": "public, max-age=15, stale-while-revalidate=60" });
+  return json({ total, page, limit, items }, 200, { "cache-control": "public, max-age=0, s-maxage=3, stale-while-revalidate=30" });
 }

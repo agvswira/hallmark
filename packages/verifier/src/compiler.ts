@@ -4,9 +4,11 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import type { ISolidityCompiler, SolidityJsonInput, SolidityOutput } from "@ethereum-sourcify/lib-sourcify";
 
+// solc's wrapper turns an emscripten soljson build into a compile() function. Imported statically
+// so bundlers include it; only the downloaded soljson builds are loaded with require() at run time.
+import wrapSoljsonImport from "solc/wrapper.js";
+const wrapSoljson = wrapSoljsonImport as (soljson: unknown) => { compile(input: string): string; version(): string };
 const require = createRequire(import.meta.url);
-// solc's wrapper turns an emscripten soljson build into a compile() function.
-const wrapSoljson: (soljson: unknown) => { compile(input: string): string; version(): string } = require("solc/wrapper");
 
 const BINARIES = "https://binaries.soliditylang.org/bin";
 

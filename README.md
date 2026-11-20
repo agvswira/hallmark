@@ -10,9 +10,8 @@ a report of the QoreChain post-quantum precompiles the contract calls.
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> Status (21 Nov 2026): registry live on diana; Hallmark verified and claimed itself; web app and
-> `hallmark` CLI working; the verifier keeps a registry-scoped EVM window open on its own. Next: deploy
-> the web app, then the AI review and red-team passes.
+> **Live: https://hallmark-jade.vercel.app** · Status (21 Nov 2026): registry on diana, web app and API on Vercel, `hallmark`
+> CLI. Hallmark verified, recorded and claimed itself, through the production API too.
 
 ## What is in the repository
 
@@ -56,6 +55,7 @@ Foundry install is needed (its npm postinstall step does not run on Windows).
 | HallmarkRegistry | [`0xa901ee7138266abc456c8d717fa94b043078b8c4`](https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
 | Deploy | `0x16edaac41bf40c264eb2be154034e16312c062c3484cbb1aa44e3fd26bc292e7` (block 10446802) |
 | First hallmark: the registry itself | full match, `pqcKeyStatus` detected; record `0x6767d7de80f984c4b46ddee197fe159670d49b95f82c01bff46909d0bb092562` |
+| Recorded through the production API | `0x4d8786716bf2d62c9c4dc710f19efd5ff429cbaf4a324d6457e09b8ad16b36b1`, source page [https://hallmark-jade.vercel.app/c/0xa901…b8c4](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
 | First claim | checked by the live `pqcKeyStatus` precompile, proof of possession: yes; `0x4e1855c255a629751cb6299e4279086c4b8d44b134c12f81d876b1e15d91d887` |
 | Owner (can replace the verifier) | `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, the project owner's wallet; transfer `0x9fc9f88e50befcdd4dbcf1a44604b6e3261c436ee3f6a2a8f6d06fe42b295d12` |
 | Verifier account (server key) | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |

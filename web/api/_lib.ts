@@ -50,15 +50,18 @@ export const reader = () => registryReader(process.env.HALLMARK_RPC_URL || undef
 // ---------------------------------------------------------------- storage
 
 /**
- * Verified sources are stored as one JSON document per contract: in Vercel Blob when
- * BLOB_READ_WRITE_TOKEN is set, otherwise in web/.data (local development).
+ * Verified sources are stored as one JSON document per contract: in a public Vercel Blob store
+ * when one is connected (BLOB_STORE_ID with OIDC credentials, or a BLOB_READ_WRITE_TOKEN),
+ * otherwise in web/.data (local development). The sources are public by design: anyone can
+ * download them and rerun the verification with the hallmark CLI.
  */
 const blobPath = (address: string) => `verifications/${address.toLowerCase()}.json`;
 const localDir = () => join(process.cwd(), ".data");
+const useBlob = () => Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
 
 export async function saveVerification(address: string, doc: StoredVerification): Promise<void> {
   const body = JSON.stringify(doc);
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (useBlob()) {
     const { put } = await import("@vercel/blob");
     await put(blobPath(address), body, {
       access: "public",
@@ -75,11 +78,12 @@ export async function saveVerification(address: string, doc: StoredVerification)
 
 export async function loadVerification(address: string): Promise<StoredVerification | undefined> {
   try {
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const { head } = await import("@vercel/blob");
-      const meta = await head(blobPath(address));
-      const res = await fetch(meta.url);
-      return res.ok ? ((await res.json()) as StoredVerification) : undefined;
+    if (useBlob()) {
+      const { get } = await import("@vercel/blob");
+      // Skip the CDN cache: a re-verification overwrites the document in place.
+      const found = await get(blobPath(address), { access: "public", useCache: false });
+      if (!found || found.statusCode !== 200 || !found.stream) return undefined;
+      return (await new Response(found.stream).json()) as StoredVerification;
     }
     return JSON.parse(await readFile(join(localDir(), blobPath(address)), "utf8"));
   } catch {

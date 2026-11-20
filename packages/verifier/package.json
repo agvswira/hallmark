@@ -2,14 +2,16 @@
   "name": "@hallmark/verifier",
   "version": "0.1.0",
   "description": "Hallmark verification engine: recompile Solidity sources and match them against QoreChain bytecode, with a PQC precompile report.",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "verify:live": "tsx scripts/verify-live.ts",
     "record:self": "tsx scripts/record-self.ts",
     "transfer-ownership": "tsx scripts/transfer-ownership.ts",
-    "window": "tsx scripts/window-ops.ts"
+    "window": "tsx scripts/window-ops.ts",
+    "build": "node build.mjs",
+    "prepare": "npm run build"
   },
   "license": "MIT",
   "type": "module",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.1.1"
@@ -34,7 +37,18 @@
     "@foundry-rs/anvil-win32-amd64": "1.7.1"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./abi": "./src/registryAbi.ts"
-  }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./abi": {
+      "types": "./dist/registryAbi.d.ts",
+      "default": "./dist/registryAbi.js"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ]
 }

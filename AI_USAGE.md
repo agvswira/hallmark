@@ -16,7 +16,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
 | Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 40 verifier tests, 14 of them end-to-end on a local chain; all passing |
-| Live checks | Registry live on `qorechain-diana`; Hallmark verified, recorded and claimed itself (full match, claim checked by the live `pqcKeyStatus` precompile); two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
+| Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana`. Hallmark verified, recorded and claimed itself, also through the production API; `hallmark check` confirms the record from a local recompile; two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
 ## The split, in one table
@@ -79,13 +79,14 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | `window.ts` and `registry.ts` imported each other with a load-time constant | Reviewing the new module before running it | Shared constants moved to `constants.ts` |
 | With no source match, the precompile report said "none", although precompile use is read from the deployed code | A tampered build-info in the first CLI run | Always read from the deployed code, plus a test |
 | The CLI exited with a libuv assertion on Windows (exit 127 instead of 3) | Checking exit codes in the CLI test run | Set the exit code and exit on a short timer |
+| Seven deployment problems: TypeScript in node_modules, a CommonJS package requiring an ES module, skipped install scripts, a Node banner in a browser bundle, a duplicated banner, Blob credentials, a stale CDN cache | Each from a failed deploy or request, read in the Vercel logs | Bundled verifier, explicit build step, separate ABI bundle, OIDC-aware storage, shorter cache (log, 21 Nov) |
 | `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
 
 This table grows with the project. Commit hashes are added once the commits exist.
 
 ## Owner decisions
 
-D1 to D6 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
+D1 to D7 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
 
 ## Check it yourself
 

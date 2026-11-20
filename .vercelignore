@@ -1,0 +1,24 @@
+# Never upload secrets or local state to Vercel
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+secrets/
+.vercel/
+
+# Installed and built on Vercel, not uploaded
+node_modules/
+**/node_modules/
+web/dist/
+web/.data/
+packages/cli/dist/
+.cache/
+**/.cache/
+
+# Not needed to build the web app
+contracts/lib/
+contracts/out/
+contracts/cache/
+.claude/

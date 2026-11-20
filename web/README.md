@@ -18,5 +18,11 @@ cp .env.example .env   # HALLMARK_VERIFIER_MNEMONIC, HALLMARK_PUBLIC_URL (leave 
 npm run dev
 ```
 
+Production: https://hallmark-jade.vercel.app (Vercel, root directory `web`). The install step builds `packages/verifier`
+first (`npm install --prefix ../packages/verifier && npm run build --prefix ../packages/verifier && npm install`):
+the verifier ships as one esbuild bundle, because the function runtime refuses CommonJS packages
+that `require()` ES modules. After changing the verifier, run `npm run build` in `packages/verifier`
+before `npm run dev` here.
+
 Locally, leave `HALLMARK_PUBLIC_URL` empty: results are verified and stored in `.data/`, but nothing
 is written to the registry, so no `localhost` address ends up in an on-chain record.

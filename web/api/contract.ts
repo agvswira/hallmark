@@ -9,6 +9,6 @@ export async function GET(request: Request): Promise<Response> {
   if (!onchain && !stored) return fail(404, "This contract has no hallmark yet.");
 
   return json({ address, onchain: onchain ?? null, stored: stored ?? null }, 200, {
-    "cache-control": "public, max-age=15, stale-while-revalidate=60",
+    "cache-control": "public, max-age=0, s-maxage=3, stale-while-revalidate=30",
   });
 }

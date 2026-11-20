@@ -227,3 +227,37 @@ contradicted); sources fetched from the dev server and recompiled locally confir
   in about 1 s.
 - A one-line shell command for these doc updates failed on nested quotes before running anything; it was
   split into files.
+
+## 2026-11-21 (UTC evening of 20 Nov): deployed to Vercel
+
+**Owner decided (D7):** deploy now, and store the testnet verifier mnemonic in Vercel. The owner was
+signed in to the Vercel CLI; the agent did the rest from the terminal.
+
+**Agent (builder):**
+- Tested the install and build from a fresh clone before touching Vercel.
+- Created the project (root directory `web`, Fluid compute, Node 24), a public Blob store for the verified
+  sources, and the production variables; the mnemonic went in as a sensitive variable, piped from the
+  local file so it never appeared in the terminal or the chat. Added `.vercelignore` so no `.env` file or
+  local state is uploaded.
+- Live: https://hallmark-jade.vercel.app. A verification through the production API compiled in the function, stored the sources
+  in Blob, checked the scoped window and recorded on chain in 11 s; the record's source link now points to
+  the public page. `hallmark check --api https://hallmark-jade.vercel.app` recompiled those sources locally and confirmed all six checks.
+
+**Learned / went wrong (each found from a failed deploy or a failed request, then fixed):**
+1. The functions could not load the verifier: the package exported TypeScript source, which Vercel does
+   not compile inside `node_modules`. The verifier now builds to `dist/`.
+2. The function runtime refused `@cosmjs/crypto` (CommonJS) requiring the ESM-only `@noble/hashes`
+   (`ERR_REQUIRE_ESM`), which Node 24 on the owner's machine allows. The verifier is now one esbuild bundle,
+   which settles that at build time; solc's wrapper is imported statically so it is bundled too.
+3. npm 11 on Vercel skips install scripts that are not allowed, so the verifier's `prepare` build never
+   ran. The build is now an explicit step of the install command.
+4. The browser build failed because the ABI entry carried the Node `createRequire` banner; the ABI is now a
+   separate, plain bundle.
+5. The CLI bundle then declared the banner's names twice; the CLI no longer adds one.
+6. Newly connected Blob stores use OIDC credentials; storage now detects `BLOB_STORE_ID` as well as a token
+   and reads with `get()` without the CDN cache.
+7. Right after a verification the contract API served the old record from the CDN for up to 15 s; the cache
+   is now 3 s.
+
+**Not checked by the agent:** the production pages in a browser (its browser pane refused the domain), and
+the claim flow with a real QoreX wallet.
