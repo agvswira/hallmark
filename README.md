@@ -55,7 +55,8 @@ Foundry install is needed (its npm postinstall step does not run on Windows).
 | Deploy | `0x16edaac41bf40c264eb2be154034e16312c062c3484cbb1aa44e3fd26bc292e7` (block 10446802) |
 | First hallmark: the registry itself | full match, `pqcKeyStatus` detected; record `0x6767d7de80f984c4b46ddee197fe159670d49b95f82c01bff46909d0bb092562` |
 | First claim | checked by the live `pqcKeyStatus` precompile, proof of possession: yes; `0x4e1855c255a629751cb6299e4279086c4b8d44b134c12f81d876b1e15d91d887` |
-| Verifier account | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
+| Owner (can replace the verifier) | `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, the project owner's wallet; transfer `0x9fc9f88e50befcdd4dbcf1a44604b6e3261c436ee3f6a2a8f6d06fe42b295d12` |
+| Verifier account (server key) | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
 
 ## Network
 

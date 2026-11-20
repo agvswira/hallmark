@@ -79,7 +79,7 @@ This table grows with the project. Commit hashes are added once the commits exis
 
 ## Owner decisions
 
-D1 to D4 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
+D1 to D5 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are numbered on.
 
 ## Check it yourself
 

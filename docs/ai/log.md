@@ -116,3 +116,11 @@ projects' own deployment records.
 
 **Checked:** `npm test` (verifier): 27 passed. Self-verification, record and claim on diana with
 the transaction hashes in the ledger (L-0013 to L-0015).
+
+**Owner decided (D5):** the owner's own wallet becomes the registry owner, so it can replace the
+verifier with `setVerifier` if the server key is ever exposed; the verifier key stays a separate
+throwaway account, because it has to sign automatically on the server and the owner's personal
+wallet must never go through the agent or the server.
+
+**Agent:** transferred ownership (`0x9fc9f88e50befcdd4dbcf1a44604b6e3261c436ee3f6a2a8f6d06fe42b295d12`)
+and read it back: owner `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, verifier unchanged.

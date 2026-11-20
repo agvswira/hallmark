@@ -7,7 +7,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "verify:live": "tsx scripts/verify-live.ts",
-    "record:self": "tsx scripts/record-self.ts"
+    "record:self": "tsx scripts/record-self.ts",
+    "transfer-ownership": "tsx scripts/transfer-ownership.ts"
   },
   "license": "MIT",
   "type": "module",
