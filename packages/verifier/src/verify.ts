@@ -28,7 +28,8 @@ export interface VerifyOptions {
   creationTxHash?: string;
   rpcUrl?: string;
   chainId?: number;
-  compiler?: ISolidityCompiler;
+  /** Defaults to SolcJsCompiler. A custom compiler needs `build.compilerVersion` in long form. */
+  compiler?: ISolidityCompiler & { resolveVersion?(version: string): Promise<string> };
   /** Most contracts to try when `contract` is not given. */
   maxCandidates?: number;
 }
@@ -56,6 +57,9 @@ export async function verifyContract(opts: VerifyOptions): Promise<VerifyResult>
   const expectedChainId = opts.chainId ?? DIANA.chainId;
   const address = getAddress(opts.address);
   const compiler = opts.compiler ?? new SolcJsCompiler();
+  const compilerVersion = compiler.resolveVersion
+    ? await compiler.resolveVersion(opts.build.compilerVersion)
+    : opts.build.compilerVersion;
 
   const client = createPublicClient({ transport: http(rpcUrl) });
   const chainId = await client.getChainId();
@@ -75,7 +79,7 @@ export async function verifyContract(opts: VerifyOptions): Promise<VerifyResult>
   const base: Omit<VerifyResult, "match" | "runtimeMatch" | "creationMatch" | "attempts"> = {
     address,
     chainId,
-    compilerVersion: opts.build.compilerVersion,
+    compilerVersion,
     sourceHash: sourceHash(opts.build.input),
     onchainCodeHash: keccak256(onchain),
   };
@@ -86,7 +90,7 @@ export async function verifyContract(opts: VerifyOptions): Promise<VerifyResult>
   for (const ref of candidates) {
     const label = `${ref.path}:${ref.name}`;
     try {
-      const compilation = new SolidityCompilation(compiler, opts.build.compilerVersion, opts.build.input, {
+      const compilation = new SolidityCompilation(compiler, compilerVersion, opts.build.input, {
         path: ref.path,
         name: ref.name,
       });

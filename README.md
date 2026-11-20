@@ -10,8 +10,8 @@ a report of the QoreChain post-quantum precompiles the contract calls.
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> Status (21 Nov 2026): the registry contract and the verification engine are done and tested,
-> and the engine has verified public contracts on diana. The web app and CLI are in progress.
+> Status (21 Nov 2026): the registry is live on diana and Hallmark has verified, recorded and
+> claimed itself. The web app and CLI are in progress.
 
 ## What is in the repository
 
@@ -46,6 +46,16 @@ npm test            # 30 tests
 
 `forge` comes from the `@foundry-rs/forge` npm package through `scripts/forge.mjs`, so no global
 Foundry install is needed (its npm postinstall step does not run on Windows).
+
+## Live on qorechain-diana
+
+| | |
+|---|---|
+| HallmarkRegistry | [`0xa901ee7138266abc456c8d717fa94b043078b8c4`](https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
+| Deploy | `0x16edaac41bf40c264eb2be154034e16312c062c3484cbb1aa44e3fd26bc292e7` (block 10446802) |
+| First hallmark: the registry itself | full match, `pqcKeyStatus` detected; record `0x6767d7de80f984c4b46ddee197fe159670d49b95f82c01bff46909d0bb092562` |
+| First claim | checked by the live `pqcKeyStatus` precompile, proof of possession: yes; `0x4e1855c255a629751cb6299e4279086c4b8d44b134c12f81d876b1e15d91d887` |
+| Verifier account | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
 
 ## Network
 

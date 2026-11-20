@@ -29,14 +29,30 @@ export function parseBuildInfo(json: unknown, fallbackVersion?: string): BuildIn
     throw new Error("No Solidity standard JSON input found (expected an `input` field or a standard JSON input)");
   }
 
+  // Hardhat writes a long version ("0.8.28+commit.7893614a"); Foundry 1.x writes only "0.8.28",
+  // which is resolved to its official release build before compiling (see SolcJsCompiler).
   const compilerVersion = String(obj.solcLongVersion ?? obj.solcVersion ?? fallbackVersion ?? "");
-  if (!/^v?\d+\.\d+\.\d+\+commit\.[0-9a-f]{8}$/.test(compilerVersion)) {
+  if (!/^v?\d+\.\d+\.\d+(\+commit\.[0-9a-f]{8})?$/.test(compilerVersion)) {
     throw new Error(
-      `A full compiler version such as 0.8.28+commit.7893614a is required (got "${compilerVersion || "none"}")`,
+      `A compiler version such as 0.8.28 or 0.8.28+commit.7893614a is required (got "${compilerVersion || "none"}")`,
     );
   }
 
-  return { compilerVersion: compilerVersion.replace(/^v/, ""), input, contracts: listContracts(obj, input) };
+  return {
+    compilerVersion: compilerVersion.replace(/^v/, ""),
+    input: standardJsonOnly(input),
+    contracts: listContracts(obj, input),
+  };
+}
+
+/**
+ * Keeps only the fields of the standard JSON input. Foundry adds `version`, `allowPaths`,
+ * `basePath` and `includePaths` (absolute local paths): solc rejects them as unknown keys,
+ * and they would leak the builder's directory layout into the published record.
+ */
+export function standardJsonOnly(input: SolidityJsonInput): SolidityJsonInput {
+  const { language, sources, settings } = input;
+  return { language, sources, settings } as SolidityJsonInput;
 }
 
 function listContracts(obj: Record<string, unknown>, input: SolidityJsonInput): ContractRef[] {

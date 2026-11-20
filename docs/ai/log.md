@@ -91,3 +91,28 @@ approved the plan.
 **Checked:** `npm test` in `packages/verifier`: 25 passed. `npm test` in `contracts`: 30 passed.
 `tsc --noEmit` clean. Live: two diana contracts, partial matches, both deployers equal to the
 projects' own deployment records.
+
+## 2026-11-21 (night): registry live on diana, first hallmark
+
+**Owner:** funded the verifier account from the faucet.
+
+**Agent (builder):**
+- Registered the verifier account's ML-DSA-87 key, opened an EVM window (17,280 blocks, the maximum),
+  and deployed HallmarkRegistry: `0xa901ee7138266abc456c8d717fa94b043078b8c4`.
+- Verified the registry from its own Foundry build-info: full match (runtime and creation perfect),
+  deployer found, `pqcKeyStatus` detected in `_requireMlDsaKey`.
+- Recorded that result in the registry and claimed it from the deployer. The claim went through the
+  live `pqcKeyStatus` precompile and stored `possessionProven: true`.
+
+**Learned / went wrong:**
+- Foundry 1.7 writes `solcLongVersion: "0.8.28"` without the commit, which the agent's parser
+  rejected. Now resolved to the official release through solc's `list.json`.
+- Foundry's build-info input carries `allowPaths`, `basePath` and `includePaths`; solc-js
+  refused them ("Unknown key"), so the first self-verification found no contract. They also hold the
+  builder's absolute local paths. The parser now keeps only the standard fields; a test checks that
+  no local path survives.
+- The build-info file is 17 MB, above Vercel's 4.5 MB request limit: the web app has to strip the
+  compiler output in the browser and send only the input.
+
+**Checked:** `npm test` (verifier): 27 passed. Self-verification, record and claim on diana with
+the transaction hashes in the ledger (L-0013 to L-0015).

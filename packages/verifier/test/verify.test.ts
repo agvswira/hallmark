@@ -109,6 +109,18 @@ describe("verifyContract", () => {
     expect(r.contract).toEqual({ path: "Two.sol", name: "Larger" });
   }, 120_000);
 
+  it("resolves a Foundry-style short compiler version to the official release", async () => {
+    expect(await compiler.resolveVersion("0.8.28")).toBe(SOLC);
+    expect(await compiler.resolveVersion(`v${SOLC}`)).toBe(SOLC);
+    await expect(compiler.resolveVersion("0.8.999")).rejects.toThrow(/No official solc release/);
+
+    const d = await deployFrom("Greeter.sol", GREETER, "Greeter");
+    const b = parseBuildInfo({ solcLongVersion: "0.8.28", input: standardInput({ "Greeter.sol": GREETER }) });
+    const r = await run(d.address, b, { contract: "Greeter.sol:Greeter" });
+    expect(r.match).toBe("full");
+    expect(r.compilerVersion).toBe(SOLC);
+  }, 120_000);
+
   it("refuses an RPC on a different chain", async () => {
     const d = await deployFrom("Greeter.sol", GREETER, "Greeter");
     await expect(run(d.address, build({ "Greeter.sol": GREETER }), { chainId: 9801 })).rejects.toThrow(

@@ -15,8 +15,8 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Skills | `modern-web-guidance` for frontend code (from the web milestone on); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 25 verifier tests, 13 of them end-to-end on a local chain; all passing |
-| Live checks | Two public contracts on `qorechain-diana` verified from source, deployers and PQC use confirmed ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
+| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 27 verifier tests, 14 of them end-to-end on a local chain; all passing |
+| Live checks | Registry live on `qorechain-diana`; Hallmark verified, recorded and claimed itself (full match, claim checked by the live `pqcKeyStatus` precompile); two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
 ## The split, in one table
@@ -71,6 +71,8 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | `@foundry-rs/forge`'s postinstall uses Unix-only syntax and fails on Windows | The install failed | `contracts/scripts/forge.mjs` runs the packaged binary directly |
 | The agent cached the solc compiler as `.js` inside an ES-module package, so Node loaded it as ESM | 10 of 11 end-to-end tests failed on the first run | Cache as `.cjs`; all tests pass |
 | The PQC report pointed at a constant's declaration, not at the functions calling the precompile | Reading the first live result on diana | Follow named constants to their uses, plus a regression test; the live rerun names both functions |
+| The parser rejected Foundry's short `solcLongVersion` ("0.8.28") | The first self-verification with a real Foundry build-info | Resolve to the official release through solc's `list.json`, plus tests |
+| Foundry's non-standard input keys (`allowPaths` and others, holding local absolute paths) made solc-js reject the input | The same self-verification found no contract; compiling the input directly showed `Unknown key "allowPaths"` | Keep only the standard fields, plus a test that no local path survives |
 | `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
 
 This table grows with the project. Commit hashes are added once the commits exist.
@@ -84,7 +86,7 @@ D1 to D4 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
 cd contracts && npm install && npm run forge-std && npm test   # 30 tests
-cd packages/verifier && npm install && npm test             # 25 tests, local anvil chain
+cd packages/verifier && npm install && npm test             # 27 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
 ```
 

@@ -21,8 +21,21 @@ describe("parseBuildInfo", () => {
     expect(b.compilerVersion).toBe("0.8.28+commit.7893614a");
   });
 
-  it("requires a full compiler version", () => {
-    expect(() => parseBuildInfo({ solcVersion: "0.8.28", input: INPUT })).toThrow(/full compiler version/);
+  it("accepts Foundry's short version and rejects anything that is not a version", () => {
+    expect(parseBuildInfo({ solcLongVersion: "0.8.28", solcVersion: "0.8.28", input: INPUT }).compilerVersion).toBe(
+      "0.8.28",
+    );
+    expect(() => parseBuildInfo({ solcVersion: "latest", input: INPUT })).toThrow(/compiler version/);
+    expect(() => parseBuildInfo({ input: INPUT })).toThrow(/compiler version/);
+  });
+
+  it("drops Foundry's non-standard input keys, which hold local absolute paths", () => {
+    const b = parseBuildInfo({
+      solcLongVersion: "0.8.28",
+      input: { ...INPUT, version: "0.8.28", allowPaths: ["D:/me/project"], basePath: "D:/me/project", includePaths: [] },
+    });
+    expect(Object.keys(b.input).sort()).toEqual(["language", "settings", "sources"]);
+    expect(JSON.stringify(b.input)).not.toContain("D:/me");
   });
 
   it("rejects input that is not Solidity", () => {

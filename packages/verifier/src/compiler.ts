@@ -24,6 +24,7 @@ interface BuildEntry {
 export class SolcJsCompiler implements ISolidityCompiler {
   private readonly loaded = new Map<string, ReturnType<typeof wrapSoljson>>();
   private list?: BuildEntry[];
+  private releases?: Record<string, string>;
 
   constructor(private readonly cacheDir = join(process.cwd(), ".cache", "solc")) {}
 
@@ -59,13 +60,34 @@ export class SolcJsCompiler implements ISolidityCompiler {
     return solc;
   }
 
-  private async findBuild(longVersion: string): Promise<BuildEntry> {
-    if (!this.list) {
+  /**
+   * Turns "0.8.28" into the long version of its official release ("0.8.28+commit.7893614a").
+   * Long versions are returned unchanged. Prereleases and nightlies are never chosen.
+   */
+  async resolveVersion(version: string): Promise<string> {
+    const v = normaliseVersion(version);
+    if (v.includes("+commit.")) return v;
+    const { releases, builds } = await this.releaseList();
+    const path = releases[v];
+    const build = path && builds.find((b) => b.path === path);
+    if (!build) throw new Error(`No official solc release ${v}`);
+    return build.longVersion;
+  }
+
+  private async releaseList() {
+    if (!this.list || !this.releases) {
       const res = await fetch(`${BINARIES}/list.json`);
       if (!res.ok) throw new Error(`Could not read the solc release list: HTTP ${res.status}`);
-      this.list = ((await res.json()) as { builds: BuildEntry[] }).builds;
+      const json = (await res.json()) as { builds: BuildEntry[]; releases: Record<string, string> };
+      this.list = json.builds;
+      this.releases = json.releases;
     }
-    const build = this.list.find((b) => b.longVersion === longVersion);
+    return { builds: this.list, releases: this.releases };
+  }
+
+  private async findBuild(longVersion: string): Promise<BuildEntry> {
+    const { builds } = await this.releaseList();
+    const build = builds.find((b) => b.longVersion === longVersion);
     if (!build) throw new Error(`Unknown solc version ${longVersion}`);
     return build;
   }
