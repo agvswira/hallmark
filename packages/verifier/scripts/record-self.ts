@@ -18,7 +18,8 @@ const { values } = parseArgs({
 });
 const env = readFileSync(new URL("../../../contracts/.env", import.meta.url), "utf8");
 const key = env.match(/^PRIVATE_KEY=(0x[0-9a-fA-F]{64})$/m)?.[1] as Hex | undefined;
-if (!key) throw new Error("PRIVATE_KEY missing in contracts/.env");
+const mnemonic = env.match(/^QORE_MNEMONIC=(.+)$/m)?.[1]?.trim();
+if (!key || !mnemonic) throw new Error("PRIVATE_KEY and QORE_MNEMONIC are needed in contracts/.env");
 
 const deployTx = JSON.parse(
   readFileSync(new URL("../../../contracts/broadcast/DeployRegistry.s.sol/9800/run-latest.json", import.meta.url), "utf8"),
@@ -33,7 +34,7 @@ const result = await verifyContract({
 console.log("verification:", result.match, "| deployer:", result.deployer, "| pqc flags:", result.pqc?.flags);
 
 const sourceUri = values["source-uri"] ?? `${values.repo}/blob/main/contracts/src/HallmarkRegistry.sol`;
-const recordTx = await recordOnchain({ result, sourceUri, verifierKey: key });
+const recordTx = await recordOnchain({ result, sourceUri, mnemonic, log: (m) => console.log("window:", m) });
 console.log("recorded:", recordTx);
 
 // The deployer claims it: the registry checks the caller's ML-DSA-87 key through pqcKeyStatus.

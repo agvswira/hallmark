@@ -1,5 +1,4 @@
 import { parseBuildInfo, recordOnchain, verifyContract, type VerifyResult } from "@hallmark/verifier";
-import type { Hex } from "viem";
 import { fail, getCompiler, json, rateLimited, saveVerification } from "./_lib.js";
 
 /**
@@ -58,16 +57,17 @@ export async function POST(request: Request): Promise<Response> {
     });
   }
 
-  const key = process.env.HALLMARK_VERIFIER_KEY as Hex | undefined;
+  const mnemonic = process.env.HALLMARK_VERIFIER_MNEMONIC;
   const publicUrl = process.env.HALLMARK_PUBLIC_URL?.replace(/\/$/, "");
-  if (!key || !publicUrl) {
-    return json({ result, recorded: false, reason: "This server has no verifier key or public URL configured." });
+  if (!mnemonic || !publicUrl) {
+    return json({ result, recorded: false, reason: "This server has no verifier account or public URL configured." });
   }
 
   try {
     const recordTx = await recordOnchain({
       result,
-      verifierKey: key,
+      mnemonic,
+      log: (m) => console.log(`[hallmark] ${m}`),
       sourceUri: `${publicUrl}/c/${result.address.toLowerCase()}`,
       rpcUrl: process.env.HALLMARK_RPC_URL || undefined,
     });

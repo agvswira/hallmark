@@ -1,30 +1,22 @@
 import {
   createPublicClient,
   createWalletClient,
-  defineChain,
   getAddress,
   http,
   type Address,
   type Hex,
   type PublicClient,
 } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { mnemonicToAccount } from "viem/accounts";
+import { classifyEvmWindowRejection } from "@qorechain/evm";
+import { ensureEvmWindow } from "./window.js";
 import { hallmarkRegistryAbi } from "./registryAbi.js";
 import type { VerifyResult } from "./verify.js";
 
 export { hallmarkRegistryAbi };
 
-/** HallmarkRegistry on qorechain-diana (deployed 21 Nov 2026, block 10446802). */
-export const REGISTRY_ADDRESS: Address = "0xa901ee7138266abc456c8d717fa94b043078b8c4";
-
-export const diana = defineChain({
-  id: 9800,
-  name: "QoreChain Diana",
-  nativeCurrency: { name: "QOR", symbol: "QOR", decimals: 18 },
-  rpcUrls: { default: { http: ["https://evm-testnet.qore.host"] } },
-  blockExplorers: { default: { name: "QoreChain Explorer", url: "https://explore.qore.network" } },
-  testnet: true,
-});
+export { REGISTRY_ADDRESS, diana } from "./constants.js";
+import { REGISTRY_ADDRESS, diana } from "./constants.js";
 
 const MATCH = { none: 0, partial: 1, full: 2 } as const;
 export const MATCH_NAMES = ["none", "partial", "full"] as const;
@@ -87,20 +79,26 @@ export function registryReader(rpcUrl: string = diana.rpcUrls.default.http[0], r
 /**
  * Writes a verification result to the registry from the verifier account.
  * Refuses results without a match or without a deployer (no matched creation transaction).
+ *
+ * The verifier account is derived from its mnemonic, which also holds its ML-DSA-87 key:
+ * before sending, the account's EVM window is checked and, if needed, a new one scoped to
+ * the registry is opened (see window.ts). A send refused for a window reason is retried
+ * once after opening a fresh window.
  */
 export async function recordOnchain(opts: {
   result: VerifyResult;
   sourceUri: string;
-  verifierKey: Hex;
+  mnemonic: string;
   rpcUrl?: string;
   registry?: Address;
+  log?: (message: string) => void;
 }): Promise<Hex> {
   const { result } = opts;
   if (result.match === "none") throw new Error("Nothing to record: no match");
   if (!result.deployer) throw new Error("A matched deployment transaction is needed to record the deployer");
 
   const rpcUrl = opts.rpcUrl ?? diana.rpcUrls.default.http[0];
-  const account = privateKeyToAccount(opts.verifierKey);
+  const account = mnemonicToAccount(opts.mnemonic.trim()); // m/44'/60'/0'/0/0, as the SDK derives it
   const wallet = createWalletClient({ account, chain: diana, transport: http(rpcUrl) });
   const pub = createPublicClient({ chain: diana, transport: http(rpcUrl) });
 
@@ -114,15 +112,28 @@ export async function recordOnchain(opts: {
     opts.sourceUri,
   ] as const;
 
-  const { request } = await pub.simulateContract({
-    account,
-    address: opts.registry ?? REGISTRY_ADDRESS,
-    abi: hallmarkRegistryAbi,
-    functionName: "recordVerification",
-    args,
-  });
-  const hash = await wallet.writeContract(request);
-  const receipt = await pub.waitForTransactionReceipt({ hash });
-  if (receipt.status !== "success") throw new Error(`recordVerification reverted: ${hash}`);
-  return hash;
+  const send = async () => {
+    // Simulate first: a revert (for example a refused downgrade) never costs a transaction.
+    const { request } = await pub.simulateContract({
+      account,
+      address: opts.registry ?? REGISTRY_ADDRESS,
+      abi: hallmarkRegistryAbi,
+      functionName: "recordVerification",
+      args,
+    });
+    const hash = await wallet.writeContract(request);
+    const receipt = await pub.waitForTransactionReceipt({ hash });
+    if (receipt.status !== "success") throw new Error(`recordVerification reverted: ${hash}`);
+    return hash;
+  };
+
+  await ensureEvmWindow({ mnemonic: opts.mnemonic, log: opts.log });
+  try {
+    return await send();
+  } catch (err) {
+    if (!classifyEvmWindowRejection(err)) throw err;
+    opts.log?.(`send refused (${classifyEvmWindowRejection(err)}); opening a fresh window and retrying once`);
+    await ensureEvmWindow({ mnemonic: opts.mnemonic, force: true, log: opts.log });
+    return send();
+  }
 }

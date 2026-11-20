@@ -183,3 +183,24 @@ rather than a copy.
 
 **Checked:** typecheck clean; home, verify and record pages in the browser pane at desktop and phone
 width with no horizontal overflow.
+
+## 2026-11-21 (morning UTC): verifier window kept open, but only for the registry
+
+**Agent (builder):**
+- Found while planning the deploy that 17,280 blocks, the longest window the chain allows, is about
+  five hours on the testnet, so recording on chain would silently stop a few hours after each manual
+  opening.
+- The SDK deliberately ships no auto-open helper ("the window exists so that spending is authorised on
+  purpose"). The agent kept that intent by scoping every window the server opens: `allowedTargets`
+  is HallmarkRegistry only, 200 transactions, 30 QOR including fees. The server reopens only when the
+  window is missing, expiring, nearly used, or not scoped that way.
+- The API now takes the verifier's mnemonic instead of a bare key, because opening a window needs the
+  account's ML-DSA-87 key, which is derived from the mnemonic.
+
+**Learned / went wrong:**
+- The first version made `window.ts` and `registry.ts` import each other, with a constant used at load
+  time: an ESM cycle that can fail depending on load order. Shared constants moved to `constants.ts`.
+
+**Checked (live on diana):** the old unscoped window was replaced by a registry-scoped one; a second
+run kept it; a record and a claim went through it (200 to 198 transactions left); a 1 wei transfer to
+another address from the same account was refused and used none of the window.

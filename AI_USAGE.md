@@ -15,7 +15,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 27 verifier tests, 14 of them end-to-end on a local chain; all passing |
+| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 32 verifier tests, 14 of them end-to-end on a local chain; all passing |
 | Live checks | Registry live on `qorechain-diana`; Hallmark verified, recorded and claimed itself (full match, claim checked by the live `pqcKeyStatus` precompile); two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
@@ -75,6 +75,8 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | The parser rejected Foundry's short `solcLongVersion` ("0.8.28") | The first self-verification with a real Foundry build-info | Resolve to the official release through solc's `list.json`, plus tests |
 | Foundry's non-standard input keys (`allowPaths` and others, holding local absolute paths) made solc-js reject the input | The same self-verification found no contract; compiling the input directly showed `Unknown key "allowPaths"` | Keep only the standard fields, plus a test that no local path survives |
 | A local run would have written a `localhost` URL into a permanent on-chain record | Reviewing what `recordVerification` stores before the first local run | Recording needs `HALLMARK_PUBLIC_URL`; local runs verify and store but never write on chain |
+| The planned server would have stopped recording a few hours after each manual window opening (17,280 blocks is about 5 hours on the testnet) | Reading the SDK's window notes while planning the deploy | Registry-scoped windows opened by the server when needed, tested live (see the log) |
+| `window.ts` and `registry.ts` imported each other with a load-time constant | Reviewing the new module before running it | Shared constants moved to `constants.ts` |
 | `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
 
 This table grows with the project. Commit hashes are added once the commits exist.
@@ -88,7 +90,7 @@ D1 to D6 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
 cd contracts && npm install && npm run forge-std && npm test   # 30 tests
-cd packages/verifier && npm install && npm test             # 27 tests, local anvil chain
+cd packages/verifier && npm install && npm test             # 32 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
 ```
 

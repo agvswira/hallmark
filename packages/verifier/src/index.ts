@@ -7,3 +7,5 @@ export { verifyContract, toLevel, DIANA } from "./verify.js";
 export { REGISTRY_ADDRESS, diana, hallmarkRegistryAbi, registryReader, recordOnchain, MATCH_NAMES } from "./registry.js";
 export type { OnchainHallmark } from "./registry.js";
 export type { VerifyOptions, VerifyResult, MatchLevel } from "./verify.js";
+export { ensureEvmWindow, windowShortfall, DEFAULT_POLICY, REGISTRY_CALL_COST } from "./window.js";
+export type { WindowPolicy, EnsureWindowResult } from "./window.js";

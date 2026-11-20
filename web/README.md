@@ -14,7 +14,7 @@ development the Vite server runs them (see `apiRoutes()` in `vite.config.ts`).
 
 ```sh
 npm install
-cp .env.example .env   # HALLMARK_VERIFIER_KEY, HALLMARK_PUBLIC_URL (leave empty locally)
+cp .env.example .env   # HALLMARK_VERIFIER_MNEMONIC, HALLMARK_PUBLIC_URL (leave empty locally)
 npm run dev
 ```
 
