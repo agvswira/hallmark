@@ -58,7 +58,8 @@ export function Try() {
     functionName: "pqcKeyStatus",
     args: account ? [account] : undefined,
     chainId: DIANA,
-    query: { enabled: !!account },
+    // Re-read while the page is open: the key may be registered in QoreX after the page loads.
+    query: { enabled: !!account, refetchInterval: 15_000 },
   });
   const windowQ = useQuery({
     queryKey: ["evm-window", account],
@@ -131,9 +132,13 @@ export function Try() {
               <>
                 <ul className="hint">
                   <li>Network: {onDiana ? "qorechain-diana" : "switch QoreX to qorechain-diana (chain 9800)"}</li>
-                  <li>ML-DSA-87 key: {key.isLoading ? "checking…" : hasKey ? "registered" : "not registered (register it in QoreX first)"}</li>
-                  <li>EVM window: {windowQ.isLoading ? "checking…" : windowOpen ? "open" : "none open (open one in QoreX first)"}</li>
+                  <li>ML-DSA-87 key: {key.isLoading ? "checking…" : hasKey ? "registered" : "not registered yet (register it in QoreX)"}</li>
+                  <li>EVM window: {windowQ.isLoading ? "checking…" : windowOpen ? "open" : "none open; QoreX opens one when you approve the transaction"}</li>
                 </ul>
+                <p className="hint">
+                  EVM transactions need QoreX's <strong>Ethereum account (coin 60)</strong>. If QoreX shows only a qor1 account, add one
+                  under Your accounts, send it some QOR, and switch to it.
+                </p>
                 <div className="actions">
                   <button
                     type="button"

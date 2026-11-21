@@ -205,7 +205,7 @@ function ClaimSection({ data }: { data: ContractResponse }) {
     abi: pqcKeyStatusAbi,
     functionName: "pqcKeyStatus",
     args: account ? [account] : undefined,
-    query: { enabled: isDeployer },
+    query: { enabled: isDeployer, refetchInterval: 15_000 },
   });
   const windowQ = useQuery({
     queryKey: ["evm-window", account],
@@ -268,7 +268,7 @@ function ClaimSection({ data }: { data: ContractResponse }) {
               <li>ML-DSA-87 key: {key.isLoading ? "checking…" : hasKey ? "registered" : "not registered"}</li>
               <li>
                 EVM window:{" "}
-                {windowQ.isLoading ? "checking…" : windowQ.data?.found && windowQ.data.live ? "open" : "none open (open one in QoreX first)"}
+                {windowQ.isLoading ? "checking…" : windowQ.data?.found && windowQ.data.live ? "open" : "none open; QoreX opens one when you approve the claim"}
               </li>
             </ul>
             <div className="field">

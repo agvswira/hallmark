@@ -15,8 +15,8 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
 | Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), [`docs/ai/redteam.md`](docs/ai/redteam.md) (attacks and outcomes), [`docs/ai/reviews/`](docs/ai/reviews/) (review reports) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 58 verifier tests, 22 of them end-to-end on a local chain, including 9 red-team tests that each assert the safe outcome of an attack; all passing |
-| Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana`. Hallmark verified, recorded and claimed itself, also through the production API; `hallmark check` confirms the record from a local recompile; two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
+| Tests so far | 36 Foundry tests (30 for `HallmarkRegistry`, one fuzz; 6 for the `QuantumGuestbook` sample); 59 verifier tests, 23 of them end-to-end on a local chain, including 9 red-team tests that each assert the safe outcome of an attack; all passing |
+| Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana`. Hallmark verified, recorded and claimed itself, also through the production API; `hallmark check` confirms the record from a local recompile; two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)); the owner deployed, verified and claimed the sample from the Try it page with a real QoreX wallet (deploy `0xbeed8439…a970`, record `0xd944c3ea…1c6e`, claim `0x2ff0b2be…65aa`) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
 ## The split, in one table
@@ -84,6 +84,9 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | The verify API stored submitted sources before recording, so a partial build with edited sources replaced the sources shown under a full on-chain record | The agent's own red-team run (B10), shown live on the local server | Store only after recording, never over a stronger result, plus tests ([redteam.md](docs/ai/redteam.md)) |
 | A verified proxy was shown as a plain full match, although its code can be swapped | Red-team attack A5 | Live proxy detection on the page, badge and CLI, plus tests |
 | The first B10 fix still let an unrecorded contract's stored sources be downgraded, and the CLI sanitizing missed check details | The separate `code-review` pass ([review](docs/ai/reviews/2026-11-21-redteam-fixes.md)) | Both fixed, with a regression test for the first |
+| The agent transferred registry ownership to the `0x` form of the owner's QoreX address, assuming it could send EVM transactions. It is a coin-118 account, which cannot; QoreX sends EVM transactions from a separate Ethereum (coin 60) account | The owner's first QoreX test connected a different `0x` address; QoreX's own help and the SDK README explained the two key types | Open (see Limits): the owner-only functions are out of reach from QoreX for now; verification, recording and claims are unaffected |
+| The Try it page's step-list styles also matched the status bullets inside each step, so they rendered as wide grid rows | The owner's screenshot from the first QoreX test | Step styles scoped to direct children (`483a1a2`) |
+| The status lines told users to open an EVM window and register a key first, and never refreshed the key status. In the owner's test QoreX opened a one-transaction window itself when the deploy was approved | Comparing the page with the chain after the owner's deploy (key registered, window of 1 transaction already used) | Key status refreshes every 15 s; the text says QoreX opens a window on approval; a hint explains the coin-60 account |
 | Twice, a script the agent wrote through a shell heredoc turned Unicode escapes into raw control and bidi characters inside a regex | Reading the edited line back (once as a broken regex, once as a file flagged binary) | Rewritten with escapes and checked for control bytes |
 
 This table grows with the project. Commit hashes are added once the commits exist.
@@ -96,8 +99,8 @@ D1 to D7 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
-cd contracts && npm install && npm run forge-std && npm test   # 30 tests
-cd packages/verifier && npm install && npm test             # 58 tests, local anvil chain
+cd contracts && npm install && npm run forge-std && npm test   # 36 tests
+cd packages/verifier && npm install && npm test             # 59 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
 node packages/cli/bin/hallmark.mjs check 0xa901ee7138266abc456c8d717fa94b043078b8c4 --build-info <file>   # recompile and compare with the record
 ```
@@ -106,5 +109,8 @@ node packages/cli/bin/hallmark.mjs check 0xa901ee7138266abc456c8d717fa94b043078b
 
 - The registry trusts one verifier account to run the comparison honestly. The `hallmark check` CLI
   lets anyone rerun a verification on their own machine and compare it with the on-chain record.
+- Registry ownership sits with the owner's coin-118 QoreX address, which cannot send EVM transactions
+  directly, so `setVerifier` and `transferOwnership` cannot be called from QoreX today. QoreChain's
+  authenticator lanes (a linked key executing EVM calls for a native account) may reach it; not yet tried.
 - The precompile is mocked in local tests; its behaviour on the live testnet is checked separately
   once the registry is deployed.
