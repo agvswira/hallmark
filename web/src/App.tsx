@@ -1,6 +1,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Contract } from "./pages/Contract.js";
 import { Home } from "./pages/Home.js";
+import { Try } from "./pages/Try.js";
 import { Verify } from "./pages/Verify.js";
 import { HSeal } from "./lib/logo.js";
 import { Link, usePath, useCopyCommands } from "./lib/ui.js";
@@ -13,6 +14,7 @@ export function App() {
   let page: React.ReactNode;
   if (path === "/") page = <Home />;
   else if (path === "/verify") page = <Verify />;
+  else if (path === "/try") page = <Try />;
   else if (contract) page = <Contract address={contract[1].toLowerCase()} />;
   else
     page = (
@@ -34,6 +36,7 @@ export function App() {
         <nav className="site-nav" aria-label="Main">
           <Link to="/" {...current("/")}>Registry</Link>
           <Link to="/verify" {...current("/verify")}>Verify</Link>
+          <Link to="/try" {...current("/try")}>Try it</Link>
           <a href="https://github.com/agvswira/hallmark">Source</a>
         </nav>
         <div className="header-end">

@@ -603,3 +603,11 @@ pre {
 
 .record-notes { display: grid; gap: 0.75rem; }
 .record-notes .notice { margin: 0; }
+
+.steps.try h2 { margin: 0; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); }
+.steps.try li > div { display: grid; gap: 0.75rem; min-width: 0; overflow-wrap: anywhere; }
+.steps.try li > div > * { margin: 0; }
+@container (width < 40rem) {
+  .steps.try li > div { grid-column: 2; }
+  .steps.try li > div p { grid-column: auto; }
+}
