@@ -336,3 +336,19 @@ guide applied (modern-web-guidance): `accessibility` (one polite status region f
   the page with the chain.
 
 **Checked:** 36 Foundry tests, 59 verifier tests, web build; the claim read back from the registry.
+
+## 2026-11-22: the CLI on npm
+
+**Agent (builder):** packaged the CLI as `@agvswira/hallmark`: one minified, self-contained file
+(1.1 MB packed, 4 files, no runtime dependencies), with a shebang for the npm bin; `--api` defaults to the
+public server, which only supplies the sources (the compilation and the verdict stay local). Tested by
+installing the packed tarball into an empty folder: the sample's record was reproduced (CONFIRMED, six
+checks) and an unrecorded address exited with 3.
+
+**Owner decided (D11):** publish to npm under their own account. The first `npm publish` was refused
+because publishing requires two-factor authentication; the owner enabled 2FA and published. The agent
+advised against a token that bypasses 2FA.
+
+**Checked from npm:** about 4 minutes after publishing, `npx -y @agvswira/hallmark@0.1.0 check
+0xa901ee7138266abc456c8d717fa94b043078b8c4` in an empty folder recompiled the registry locally and
+confirmed all six checks (exit 0).

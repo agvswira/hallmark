@@ -102,7 +102,7 @@ git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's 
 cd contracts && npm install && npm run forge-std && npm test   # 36 tests
 cd packages/verifier && npm install && npm test             # 59 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
-node packages/cli/bin/hallmark.mjs check 0xa901ee7138266abc456c8d717fa94b043078b8c4 --build-info <file>   # recompile and compare with the record
+npx @agvswira/hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4   # recompile locally and compare with the record
 ```
 
 ## Limits
