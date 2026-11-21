@@ -1,82 +1,166 @@
+<div align="center">
+
+<img src="web/public/favicon.svg" alt="" width="88" height="88">
+
 # Hallmark
 
 **Proof that the contract on QoreChain is the code in your repo.**
 
-QoreChain's explorer has no source verification and no Etherscan-compatible API, so nobody can
-prove that a contract deployed on the `qorechain-diana` testnet was built from the code in a
-GitHub repository. Hallmark recompiles your sources with the exact compiler settings, compares the
-result with the bytecode on chain, and records the match in an on-chain registry, together with
-a report of the QoreChain post-quantum precompiles the contract calls.
+Source verification and a post-quantum report for contracts on `qorechain-diana`.
+
+[![Hallmark](https://hallmark-jade.vercel.app/api/badge?address=0xa901ee7138266abc456c8d717fa94b043078b8c4)](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4)
+[![npm](https://img.shields.io/npm/v/@agvswira/hallmark?label=npx%20%40agvswira%2Fhallmark)](https://www.npmjs.com/package/@agvswira/hallmark)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+[**Live app**](https://hallmark-jade.vercel.app) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [CLI](packages/cli/README.md) · [How the AI was used](AI_USAGE.md)
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> **Live: https://hallmark-jade.vercel.app** · Status (22 Nov 2026): registry on diana, web app and API on Vercel.
-> Hallmark verified, recorded and claimed itself; a sample was deployed, verified and claimed with a real QoreX
-> wallet from the [Try it](https://hallmark-jade.vercel.app/try) page. Recheck any record on your own machine:
->
-> ```sh
-> npx @agvswira/hallmark check 0xf5340e357e16da6b9ded7ad9c86148df2ec5f992
-> ```
+</div>
 
-## What is in the repository
+> [!NOTE]
+> The first badge above is Hallmark's own: the registry contract, verified by Hallmark and recorded in itself.
 
-| Path | What |
-|---|---|
-| `contracts/` | `HallmarkRegistry`: the on-chain record of verified contracts, with Foundry tests |
-| `packages/verifier/` | The verification engine: recompile, match against diana, PQC report ([details](packages/verifier/README.md)) |
-| `packages/cli/` | `hallmark check`: recompile on your own machine and compare with the on-chain record ([details](packages/cli/README.md)) |
-| `web/` | The web app and API: verify, registry, contract pages with the PQC report, claim with QoreX, README badge ([details](web/README.md)) |
-| `docs/ai/` | The log, ledger and reports behind [AI_USAGE.md](AI_USAGE.md) |
-| `scripts/` | Repository tooling (pre-commit secret scan) |
+## Why
 
-## HallmarkRegistry
+QoreChain's explorer has no source verification and no Etherscan-compatible API. Nobody can prove
+that a contract deployed on diana was built from the code in a GitHub repository, and the Solidity PQC
+features (`pqcVerify`, `pqcKeyStatus`) are checked by reading repositories by hand.
 
-- **The registry reads the code hash itself.** When the verifier records a result, the contract
-  stores `target.codehash` read on chain, so a record can only describe the code that is deployed.
-  `isCurrent(target)` tells you whether that code is still the same.
-- **Full or partial match.** Full: bytecode and metadata hash match. Partial: the bytecode
-  matches but the metadata hash differs. A full record cannot be downgraded to partial for the same code.
-- **PQC report.** `pqcFlags` records whether the verified code calls `pqcVerify` (0x…0a01) or
-  `pqcKeyStatus` (0x…0a02).
-- **Claims need a post-quantum key.** Only the recorded deployer can claim a contract and link its
-  repository, and only from an account whose ML-DSA-87 key is registered, checked in the contract
-  through the `pqcKeyStatus` precompile. If the precompile answers with no data (inactive), the claim
-  is refused rather than accepted.
+Hallmark makes that check automatic, public and reproducible:
 
-```sh
-cd contracts
-npm install
-npm run forge-std   # clones forge-std into lib/
-npm test            # 30 tests
+- **Match.** Recompiles your build with the official solc release at the exact version and settings,
+  and compares it with the bytecode on chain.
+- **Record.** Writes the result to `HallmarkRegistry` on diana. The registry reads the contract's code
+  hash itself, so a record can only describe code that is really deployed.
+- **Report.** Shows whether the deployed code calls `pqcVerify` (0x…0a01) or `pqcKeyStatus` (0x…0a02),
+  and from which functions.
+- **Claim.** The deployer links the contract to a repository with QoreX. The registry accepts the
+  claim only from an account with a registered ML-DSA-87 key, checked on chain through `pqcKeyStatus`.
+- **Recheck.** Anyone can rerun a verification on their own machine with one command, so nobody has to
+  trust the Hallmark server.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A["Your build<br/>(Foundry or Hardhat build-info)"] --> B["Hallmark verifier<br/>solc recompile + bytecode match"]
+    C["Deployed code<br/>on qorechain-diana"] --> B
+    B -->|"full / partial match<br/>+ PQC flags"| D[("HallmarkRegistry<br/>on chain")]
+    D --> E["Public page + README badge"]
+    F["Deployer, with QoreX"] -->|"claim (ML-DSA-87 key<br/>checked via pqcKeyStatus)"| D
+    G["Anyone"] -->|"npx @agvswira/hallmark check"| D
 ```
 
-`forge` comes from the `@foundry-rs/forge` npm package through `scripts/forge.mjs`, so no global
-Foundry install is needed (its npm postinstall step does not run on Windows).
+**Full match:** the bytecode and the metadata hash match, which proves the exact sources, settings and
+compiler. **Partial match:** the executable code matches but the metadata differs, so the sources,
+settings and compiler version are not proven; the page says so. A full record is never replaced by a
+partial one, and a record shows when the code at the address changes.
+
+## Quick start
+
+**Try it in a minute, with your QoreX wallet.** Open the [Try it](https://hallmark-jade.vercel.app/try)
+page: deploy a small PQ-guarded sample, verify it, and claim it. Every step is a real transaction on diana.
+
+**Verify your own contract.** Build with build-info, deploy, then upload the build-info with the address
+and deployment transaction on the [Verify](https://hallmark-jade.vercel.app/verify) page:
+
+```sh
+forge build --build-info          # writes out/build-info/*.json
+```
+
+Or submit it from the terminal:
+
+```sh
+npx @agvswira/hallmark verify --address 0x… --tx 0x… --build-info out/build-info/<file>.json
+```
+
+**Check any record yourself.** Node 20 or later, no install:
+
+```sh
+npx @agvswira/hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4
+```
+
+It downloads the matching solc release (checked by SHA-256), recompiles on your machine and compares
+six facts with the on-chain record. Exit code 0 means confirmed. See the [CLI README](packages/cli/README.md).
+
+**Add the badge to your README.** Every record page gives you the Markdown:
+
+```md
+[![Hallmark](https://hallmark-jade.vercel.app/api/badge?address=0xYOUR_CONTRACT)](https://hallmark-jade.vercel.app/c/0xYOUR_CONTRACT)
+```
+
+## Trust and security
+
+- **The verdict is reproducible.** The server compares; the [CLI](packages/cli/README.md) lets anyone
+  rerun the comparison locally against the same on-chain record.
+- **The registry trusts one verifier account** to record results. That account can only spend through
+  EVM windows scoped to `HallmarkRegistry` (`allowedTargets`), so a leaked server key could not move its
+  funds through the EVM; a transfer outside the scope was refused on diana.
+- **Red-teamed.** An AI red-team run tried 13 attacks: edited sources, missing metadata, another compiler,
+  fake PQC verifiers, proxies, stored-source poisoning, link and terminal injection, gas drain. The gaps
+  it found are fixed with regression tests. See [docs/ai/redteam.md](docs/ai/redteam.md).
+- **Proxies are flagged.** An upgradeable proxy's hallmark covers the proxy, not the code it delegates
+  to; the page, the badge and the CLI say so and show the live implementation.
+- **No model in the verification path.** Results are deterministic.
+
+Testnet only. See [Limits](AI_USAGE.md#limits) for what is not covered.
 
 ## Live on qorechain-diana
 
 | | |
 |---|---|
-| HallmarkRegistry | [`0xa901ee7138266abc456c8d717fa94b043078b8c4`](https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
-| Deploy | `0x16edaac41bf40c264eb2be154034e16312c062c3484cbb1aa44e3fd26bc292e7` (block 10446802) |
-| First hallmark: the registry itself | full match, `pqcKeyStatus` detected; record `0x6767d7de80f984c4b46ddee197fe159670d49b95f82c01bff46909d0bb092562` |
-| Recorded through the production API | `0x4d8786716bf2d62c9c4dc710f19efd5ff429cbaf4a324d6457e09b8ad16b36b1`, source page [https://hallmark-jade.vercel.app/c/0xa901…b8c4](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
-| First claim | checked by the live `pqcKeyStatus` precompile, proof of possession: yes; `0x4e1855c255a629751cb6299e4279086c4b8d44b134c12f81d876b1e15d91d887` |
-| Owner (can replace the verifier) | `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, the project owner's wallet; transfer `0x9fc9f88e50befcdd4dbcf1a44604b6e3261c436ee3f6a2a8f6d06fe42b295d12` |
-| Verifier account (server key) | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
+| `HallmarkRegistry` | [`0xa901ee7138266abc456c8d717fa94b043078b8c4`](https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4), deployed in `0x16edaac4…92e7` (block 10446802) |
+| First hallmark: the registry itself | Full match, `pqcKeyStatus`; [record page](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
+| First claim with a real QoreX wallet | [`QuantumGuestbook` sample](https://hallmark-jade.vercel.app/c/0xf5340e357e16da6b9ded7ad9c86148df2ec5f992): deploy `0xbeed8439…a970`, record `0xd944c3ea…1c6e`, claim `0x2ff0b2be…65aa` |
+| Verifier account (server) | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
+| Owner (can replace the verifier) | `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, the project owner's QoreX account. It is a coin-118 account, which cannot send EVM transactions directly, so the owner functions are unreachable from QoreX for now ([Limits](AI_USAGE.md#limits)) |
+| Network | `qorechain-diana`, EVM chain id 9800 · RPC `https://evm-testnet.qore.host` · REST `https://api-testnet.qore.host` |
 
-## Network
+## Repository
 
-| | |
+| Path | What |
 |---|---|
-| Chain | `qorechain-diana` (testnet), EVM chain id 9800 |
-| EVM RPC | `https://evm-testnet.qore.host` |
-| REST | `https://api-testnet.qore.host` |
+| [`contracts/`](contracts) | `HallmarkRegistry` and the `QuantumGuestbook` sample, with Foundry tests |
+| [`packages/verifier/`](packages/verifier/README.md) | The verification engine: recompile, match, PQC report, proxy detection, recording |
+| [`packages/cli/`](packages/cli/README.md) | `@agvswira/hallmark` on npm: `status`, `check`, `verify` |
+| [`web/`](web/README.md) | The web app and API (Vite + React on Vercel): verify, registry, record pages, claim, badge, Try it |
+| [`docs/ai/`](docs/ai) | The log, ledger, red-team report and reviews behind [AI_USAGE.md](AI_USAGE.md) |
+| [`scripts/`](scripts) | Repository tooling (the pre-commit secret scan) |
+
+## Development
+
+Each block starts from the repository root.
+
+```sh
+# Contracts: 36 Foundry tests. forge comes from the @foundry-rs/forge npm package,
+# so no global Foundry install is needed.
+cd contracts
+npm install && npm run forge-std && npm test
+```
+
+```sh
+# Verifier: 59 tests, including end-to-end and red-team tests on a local anvil chain.
+cd packages/verifier
+npm install && npm test && npm run build
+```
+
+```sh
+# Web app with the API routes, on http://localhost:5173 (build the verifier first).
+cd web
+npm install && npm run dev
+```
+
+Recording on chain is off locally unless `HALLMARK_VERIFIER_MNEMONIC` and `HALLMARK_PUBLIC_URL` are set
+(see [web/README.md](web/README.md)); verification and the pages work without them.
+
+Working rules for AI agents and contributors are in [CLAUDE.md](CLAUDE.md): commits under the owner's
+name, secrets only in gitignored `.env` files, testnet only, and a secret scan on every commit.
 
 ## Credits
 
-- Scaffolded with [`create-qorechain-dapp`](https://www.npmjs.com/package/create-qorechain-dapp)
-  0.14 (`foundry` and `viem-wagmi` templates), including the template's `scripts/window.ts` EVM window helper.
+- Scaffolded with [`create-qorechain-dapp`](https://www.npmjs.com/package/create-qorechain-dapp) 0.14
+  (`foundry` and `viem-wagmi` templates), including the template's `scripts/window.ts` EVM window helper.
 - [`@qorechain/sdk`](https://www.npmjs.com/package/@qorechain/sdk),
   [`@qorechain/evm`](https://www.npmjs.com/package/@qorechain/evm),
   [`@qorechain/qorex-rainbowkit`](https://www.npmjs.com/package/@qorechain/qorex-rainbowkit).
@@ -89,8 +173,15 @@ Foundry install is needed (its npm postinstall step does not run on Windows).
 ## AI use
 
 Built with an AI coding agent. The workflow, what the AI generated and what the owner decided are
-documented in [AI_USAGE.md](AI_USAGE.md) from the first commit.
+documented in [AI_USAGE.md](AI_USAGE.md) from the first commit, with a dated [log](docs/ai/log.md), a
+per-change [ledger](docs/ai/ledger.jsonl), the [red-team report](docs/ai/redteam.md) and
+[review reports](docs/ai/reviews).
 
-## Licence
+## Feedback
 
-[MIT](LICENSE)
+Questions, bugs or a contract that does not verify: [open an issue](https://github.com/agvswira/hallmark/issues)
+with the contract address and, if you have it, the deployment transaction.
+
+## License
+
+[MIT](LICENSE) © 2026 Komang Agus Wira Adnyana
