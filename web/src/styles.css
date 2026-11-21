@@ -332,7 +332,7 @@ main {
 
 /* Steps as ruled rows: number, name, explanation. Reads in order at any width. */
 .steps { list-style: none; margin: 0; padding: 0; container-type: inline-size; }
-.steps li {
+.steps > li {
   display: grid;
   grid-template-columns: 4rem minmax(8rem, 14rem) 1fr;
   gap: 0.5rem 2rem;
@@ -341,13 +341,13 @@ main {
   border-block-end: 1px solid var(--line);
   transition: background-color 0.2s;
 }
-.steps li:first-child { border-block-start: 1px solid var(--line); }
+.steps > li:first-child { border-block-start: 1px solid var(--line); }
 .steps h3 { margin: 0; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); }
 .steps .n { font-family: var(--mono); font-size: 0.85rem; color: var(--gold); }
-.steps p { color: var(--muted); margin: 0; }
+.steps > li > p { color: var(--muted); margin: 0; }
 @container (width < 40rem) {
-  .steps li { grid-template-columns: 3rem 1fr; }
-  .steps p { grid-column: 2; }
+  .steps > li { grid-template-columns: 3rem 1fr; }
+  .steps > li > p { grid-column: 2; }
 }
 
 /* ---------------------------------------------------------------- closing cards */
@@ -607,7 +607,8 @@ pre {
 .steps.try h2 { margin: 0; font-size: clamp(1.2rem, 1rem + 0.8vw, 1.6rem); }
 .steps.try li > div { display: grid; gap: 0.75rem; min-width: 0; overflow-wrap: anywhere; }
 .steps.try li > div > * { margin: 0; }
+.steps.try li > div > p:not(.notice) { color: var(--muted); }
+.steps.try ul.hint { padding-inline-start: 1.2rem; display: grid; gap: 0.25rem; }
 @container (width < 40rem) {
   .steps.try li > div { grid-column: 2; }
-  .steps.try li > div p { grid-column: auto; }
 }
