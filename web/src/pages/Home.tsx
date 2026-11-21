@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { listContracts, type OnchainHallmark } from "../lib/api.js";
 import { HSeal } from "../lib/logo.js";
-import { Link, MatchTag, PqTag, RepoLink, Spinner, cleanText, navigate, short, useUserInvalidAria } from "../lib/ui.js";
+import { CopyButton, Link, MatchTag, PqTag, RepoLink, Spinner, cleanText, navigate, short, useUserInvalidAria } from "../lib/ui.js";
 
 export function Home() {
   const { data, error, isLoading } = useQuery({ queryKey: ["contracts", 0], queryFn: () => listContracts(0) });
@@ -24,6 +24,9 @@ export function Home() {
         <div className="actions">
           <Link to="/verify" className="button">
             Verify a contract <span className="arrow" aria-hidden="true">→</span>
+          </Link>
+          <Link to="/try" className="button ghost">
+            Try it with QoreX
           </Link>
           <a className="button ghost" href="#registry">See the registry</a>
         </div>
@@ -101,11 +104,16 @@ export function Home() {
             <h2>Check any contract in seconds.</h2>
             <p className="muted">
               Paste an address to see whether its code matches a repository, and whether it really calls the post-quantum
-              precompiles it claims to.
+              precompiles it claims to. Or recheck any record on your own machine, without trusting this server:
             </p>
+          </div>
+          <div className="copy-row">
+            <code id="npx-check">npx @agvswira/hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4</code>
+            <CopyButton target="npx-check" label="Copy the check command" />
           </div>
           <div className="actions">
             <a className="button ghost" href="#lookup">Look up an address <span className="arrow" aria-hidden="true">↑</span></a>
+            <a className="button ghost" href="https://www.npmjs.com/package/@agvswira/hallmark">The CLI on npm</a>
           </div>
         </div>
         <div className="card gold">
