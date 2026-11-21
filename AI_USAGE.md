@@ -14,8 +14,8 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 | Agent tools | Shell, file editing, a built-in browser for reading the fest site and docs, web fetch, GitHub CLI (read-only research) |
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
-| Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), `docs/ai/reviews/` and `docs/ai/redteam.md` (as those milestones land) |
-| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 40 verifier tests, 14 of them end-to-end on a local chain; all passing |
+| Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), [`docs/ai/redteam.md`](docs/ai/redteam.md) (attacks and outcomes), [`docs/ai/reviews/`](docs/ai/reviews/) (review reports) |
+| Tests so far | 30 Foundry tests for `HallmarkRegistry` (one fuzz); 58 verifier tests, 22 of them end-to-end on a local chain, including 9 red-team tests that each assert the safe outcome of an attack; all passing |
 | Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana`. Hallmark verified, recorded and claimed itself, also through the production API; `hallmark check` confirms the record from a local recompile; two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)) |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
@@ -38,8 +38,8 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | Role | What it does on Hallmark | Evidence |
 |---|---|---|
 | **Builder** | Writes the code in small, tested steps, following [`CLAUDE.md`](CLAUDE.md) | `docs/ai/log.md`, `docs/ai/ledger.jsonl`, `git log` |
-| **Reviewer** | At each milestone a separate review pass (`security-review`, `code-review`) reads the diff; every finding is fixed with a regression test or answered in writing | `docs/ai/reviews/` (from the verifier milestone) |
-| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | `docs/ai/redteam.md` (from the verifier milestone) |
+| **Reviewer** | At each milestone a separate review pass (`security-review`, `code-review`) reads the diff; every finding is fixed with a regression test or answered in writing | [`docs/ai/reviews/`](docs/ai/reviews/): first review found 5 issues in the red-team fixes (2 important), all fixed |
+| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | [`docs/ai/redteam.md`](docs/ai/redteam.md): 13 attacks; source attacks held, 6 gaps found and fixed (proxies, stored-source poisoning shown live, link and terminal injection, gas drain, compile cost), 1 documented |
 
 ## Workflow
 
@@ -81,6 +81,10 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | The CLI exited with a libuv assertion on Windows (exit 127 instead of 3) | Checking exit codes in the CLI test run | Set the exit code and exit on a short timer |
 | Seven deployment problems: TypeScript in node_modules, a CommonJS package requiring an ES module, skipped install scripts, a Node banner in a browser bundle, a duplicated banner, Blob credentials, a stale CDN cache | Each from a failed deploy or request, read in the Vercel logs | Bundled verifier, explicit build step, separate ABI bundle, OIDC-aware storage, shorter cache (log, 21 Nov) |
 | `.cache/` (downloaded compilers) was not gitignored | Reviewing `git status` before committing | Added to `.gitignore` |
+| The verify API stored submitted sources before recording, so a partial build with edited sources replaced the sources shown under a full on-chain record | The agent's own red-team run (B10), shown live on the local server | Store only after recording, never over a stronger result, plus tests ([redteam.md](docs/ai/redteam.md)) |
+| A verified proxy was shown as a plain full match, although its code can be swapped | Red-team attack A5 | Live proxy detection on the page, badge and CLI, plus tests |
+| The first B10 fix still let an unrecorded contract's stored sources be downgraded, and the CLI sanitizing missed check details | The separate `code-review` pass ([review](docs/ai/reviews/2026-11-21-redteam-fixes.md)) | Both fixed, with a regression test for the first |
+| Twice, a script the agent wrote through a shell heredoc turned Unicode escapes into raw control and bidi characters inside a regex | Reading the edited line back (once as a broken regex, once as a file flagged binary) | Rewritten with escapes and checked for control bytes |
 
 This table grows with the project. Commit hashes are added once the commits exist.
 
@@ -93,7 +97,7 @@ D1 to D7 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
 cd contracts && npm install && npm run forge-std && npm test   # 30 tests
-cd packages/verifier && npm install && npm test             # 40 tests, local anvil chain
+cd packages/verifier && npm install && npm test             # 58 tests, local anvil chain
 node scripts/scan-secrets.mjs                  # the secret scan, on staged files
 node packages/cli/bin/hallmark.mjs check 0xa901ee7138266abc456c8d717fa94b043078b8c4 --build-info <file>   # recompile and compare with the record
 ```

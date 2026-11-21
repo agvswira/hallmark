@@ -261,3 +261,34 @@ signed in to the Vercel CLI; the agent did the rest from the terminal.
 
 **Not checked by the agent:** the production pages in a browser (its browser pane refused the domain), and
 the claim flow with a real QoreX wallet.
+
+## 2026-11-21: red team and review
+
+**Owner decided (D8):** checked the production site in their own browser after the deploy ("Sudah, aman"), which
+covers the browser check the agent could not do. Then asked for the red-team and review milestone.
+
+**Agent (attacker):** tried 13 attacks on the verifier, API, web app, CLI and window; results and
+fixes in [`redteam.md`](redteam.md). Source attacks (no metadata, `bytecodeHash: none`, another compiler,
+renamed contract, fake PQC verifier) all held. Gaps found and fixed: proxies shown as plain matches (A5),
+stored sources poisoned by a partial submission, shown live on the local server (B10), a `javascript:`
+repository link (B1), raw terminal escapes in the CLI (B1b), repeated verifications spending the
+verifier's window (B2), unbounded candidate compilations (B4). The in-memory rate limit (B3) is
+documented; a Vercel Firewall rule is the real fix and needs the owner's dashboard.
+
+**Agent (builder):** `detectProxy` and `planRecording` in the verifier; the verify API reads the existing
+record first and stores only after recording; the record page warns about proxies, partial matches and
+stored sources that differ from the record; the badge marks proxies; the CLI cleans strings and prints
+proxies. Frontend guides applied (modern-web-guidance): the record notices reuse the existing notice
+styles, no new patterns.
+
+**Agent (reviewer):** a separate `code-review` pass at high effort found 5 issues, 2 important: the B10
+fix still let an unrecorded contract's stored sources be downgraded, and the CLI missed check details.
+All 5 fixed; report in [`reviews/2026-11-21-redteam-fixes.md`](reviews/2026-11-21-redteam-fixes.md).
+
+**Learned / went wrong:**
+- Writing source through a shell heredoc turned Unicode escapes into raw control and bidi characters
+  inside a regex, twice. Caught by reading the line back; such edits now go through the file editor and
+  are checked for control bytes.
+
+**Checked:** 58 verifier tests and 30 Foundry tests pass; web typecheck and production build pass; the
+record page in the local preview renders the claim as an http(s) link with `rel="nofollow noopener noreferrer"`.
