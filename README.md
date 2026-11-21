@@ -8,6 +8,7 @@
 
 Source verification and a post-quantum report for contracts on `qorechain-diana`.
 
+[![Built on QoreChain](https://build.qorechain.io/badge/hallmark.svg)](https://build.qorechain.io/p/hallmark)
 [![Hallmark](https://hallmark-jade.vercel.app/api/badge?address=0xa901ee7138266abc456c8d717fa94b043078b8c4)](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4)
 [![npm](https://img.shields.io/npm/v/@agvswira/hallmark?label=npx%20%40agvswira%2Fhallmark)](https://www.npmjs.com/package/@agvswira/hallmark)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
