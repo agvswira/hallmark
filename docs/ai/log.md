@@ -292,3 +292,16 @@ All 5 fixed; report in [`reviews/2026-11-21-redteam-fixes.md`](reviews/2026-11-2
 
 **Checked:** 58 verifier tests and 30 Foundry tests pass; web typecheck and production build pass; the
 record page in the local preview renders the claim as an http(s) link with `rel="nofollow noopener noreferrer"`.
+
+## 2026-11-21: red-team fixes deployed; rate limit in Vercel Firewall
+
+**Owner decided (D9):** deploy and push the red-team fixes; then added a Vercel Firewall rule in the
+dashboard for B3 (path equals `/api/verify`, 60 s fixed window, 6 requests per IP, 429), with the values
+the agent suggested.
+
+**Agent (builder):** deployed to production and pushed `ade4e88` and `40fa8d4`.
+
+**Checked (production):** `/api/contract` returns the new `proxy` field; resubmitting the registry's build
+without the deployment transaction was refused, and with it returned "unchanged" with no new transaction;
+of 8 quick requests to `/api/verify`, 7 and 8 were answered 429 by the firewall (`X-Vercel-Mitigated: deny`)
+before reaching the function.

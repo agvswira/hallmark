@@ -24,7 +24,7 @@ safe outcome, so a regression fails the suite.
 | B1 | Claim a contract with `javascript:…` as the repository | **Gap**: the page put the string in `href` | Links only for http(s) URLs; control and bidi characters stripped |
 | B1b | Put ANSI escapes or bidi overrides in on-chain strings, read with the CLI | **Gap**: the CLI printed them raw | CLI strips them, JSON output escapes bidi characters |
 | B2 | Submit the same verification again and again | **Gap**: each one sent a registry transaction, spending the verifier's window (200 transactions) | Exact repeats write nothing ("unchanged") |
-| B3 | Flood `/api/verify` | **Partly held**: an in-memory limit of 6 per minute per IP, per function instance | Documented below; a platform rule is the real fix |
+| B3 | Flood `/api/verify` | **Gap**: the in-memory limit of 6 per minute per IP applied per function instance | Vercel Firewall rule set by the owner: 6 per minute per IP across all instances, checked live |
 | B4 | Submit a large build with no contract named, so every candidate compiles | **Gap**: unbounded compilations per request | At most 3 candidates when no contract is named |
 | B10 | Submit a partial build of a fully hallmarked contract, with edited sources | **Gap, shown live**: the page showed the attacker's sources under a full on-chain record | Sources are stored only after recording, never over a stronger result |
 | W | Spend the verifier's window on something other than the registry | **Held** (live on diana): a 1 wei transfer was refused | None needed (window scoped with `allowedTargets`) |
@@ -95,9 +95,13 @@ compilation. The API now stops at 3.
 
 `/api/verify` allows 6 requests per minute per IP, counted in memory. On Vercel each function
 instance has its own memory, so the limit is per instance, and `x-forwarded-for` is the only key.
-This slows a casual flood but does not stop a determined one. The real fix is a rate-limit rule in
-Vercel Firewall on `/api/verify`, which needs the owner's dashboard. B2 and B4 bound what each
-request can cost in the meantime.
+This slows a casual flood but does not stop a determined one.
+
+Fix: the owner added a Vercel Firewall rule in the dashboard (request path equals `/api/verify`,
+fixed window of 60 s, 6 requests, keyed by IP, answer 429). Checked live: of 8 quick requests, 1–6
+reached the function and 7–8 were answered 429 by the firewall (`X-Vercel-Mitigated: deny`, with no
+function region in the request ID), so they never ran. The in-memory limit stays as a second layer,
+and B2 and B4 still bound what each request can cost.
 
 ## The verifier's window (W)
 

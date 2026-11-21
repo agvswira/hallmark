@@ -39,7 +39,7 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 |---|---|---|
 | **Builder** | Writes the code in small, tested steps, following [`CLAUDE.md`](CLAUDE.md) | `docs/ai/log.md`, `docs/ai/ledger.jsonl`, `git log` |
 | **Reviewer** | At each milestone a separate review pass (`security-review`, `code-review`) reads the diff; every finding is fixed with a regression test or answered in writing | [`docs/ai/reviews/`](docs/ai/reviews/): first review found 5 issues in the red-team fixes (2 important), all fixed |
-| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | [`docs/ai/redteam.md`](docs/ai/redteam.md): 13 attacks; source attacks held, 6 gaps found and fixed (proxies, stored-source poisoning shown live, link and terminal injection, gas drain, compile cost), 1 documented |
+| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | [`docs/ai/redteam.md`](docs/ai/redteam.md): 13 attacks; source attacks held, 7 gaps found and fixed (proxies, stored-source poisoning shown live, link and terminal injection, gas drain, compile cost, and the rate limit, set by the owner in Vercel Firewall) |
 
 ## Workflow
 
