@@ -10,8 +10,13 @@ a report of the QoreChain post-quantum precompiles the contract calls.
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
-> **Live: https://hallmark-jade.vercel.app** · Status (21 Nov 2026): registry on diana, web app and API on Vercel, `hallmark`
-> CLI. Hallmark verified, recorded and claimed itself, through the production API too.
+> **Live: https://hallmark-jade.vercel.app** · Status (22 Nov 2026): registry on diana, web app and API on Vercel.
+> Hallmark verified, recorded and claimed itself; a sample was deployed, verified and claimed with a real QoreX
+> wallet from the [Try it](https://hallmark-jade.vercel.app/try) page. Recheck any record on your own machine:
+>
+> ```sh
+> npx @agvswira/hallmark check 0xf5340e357e16da6b9ded7ad9c86148df2ec5f992
+> ```
 
 ## What is in the repository
 

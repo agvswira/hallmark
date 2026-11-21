@@ -24,3 +24,4 @@ web/.data/
 
 .vercel
 .env*
+packages/cli/LICENSE

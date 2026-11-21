@@ -1,26 +1,51 @@
 {
-  "name": "@hallmark/cli",
+  "name": "@agvswira/hallmark",
   "version": "0.1.0",
-  "private": true,
-  "description": "hallmark: check a QoreChain contract against its HallmarkRegistry record from your own machine.",
+  "description": "Check a QoreChain contract against its HallmarkRegistry record from your own machine: recompile with the official solc build and compare with the chain.",
   "license": "MIT",
+  "author": "Komang Agus Wira Adnyana",
   "type": "module",
   "bin": {
-    "hallmark": "bin/hallmark.mjs"
+    "hallmark": "dist/hallmark.mjs"
+  },
+  "files": [
+    "dist/hallmark.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agvswira/hallmark.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://hallmark-jade.vercel.app",
+  "bugs": "https://github.com/agvswira/hallmark/issues",
+  "keywords": [
+    "qorechain",
+    "source-verification",
+    "solidity",
+    "post-quantum",
+    "ml-dsa",
+    "cli"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "node build.mjs",
+    "prepublishOnly": "node build.mjs",
     "hallmark": "node bin/hallmark.mjs",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@hallmark/verifier": "file:../verifier",
-    "solc": "^0.8.39",
-    "tsx": "^4.23.15"
-  },
   "devDependencies": {
+    "@hallmark/verifier": "file:../verifier",
     "@types/node": "^22.20.5",
     "esbuild": "^0.28.2",
+    "solc": "^0.8.39",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }

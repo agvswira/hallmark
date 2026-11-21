@@ -4,7 +4,7 @@
  *
  *   hallmark status <address>
  *   hallmark check  <address> [--build-info <file>] [--contract <path:Name>] [--tx <hash>] [--api <url>]
- *   hallmark verify --address <0x…> --build-info <file> [--tx <hash>] [--contract <path:Name>] --api <url>
+ *   hallmark verify --address <0x…> --build-info <file> [--tx <hash>] [--contract <path:Name>] [--api <url>]
  *
  * `check` recompiles locally with the official solc build and compares the result with the
  * chain and with the record. Sources come from --build-info, or else from a Hallmark server
@@ -33,13 +33,14 @@ const HELP = `hallmark: source verification for QoreChain contracts (qorechain-d
 Usage:
   hallmark status <address>
   hallmark check  <address> [--build-info <file>] [--contract <path:Name>] [--tx <hash>] [--api <url>]
-  hallmark verify --address <0x…> --build-info <file> [--tx <hash>] [--contract <path:Name>] --api <url>
+  hallmark verify --address <0x…> --build-info <file> [--tx <hash>] [--contract <path:Name>] [--api <url>]
 
 Options:
   --build-info <file>   Foundry (out/build-info/*.json) or Hardhat (artifacts/build-info/*.json)
   --contract <path:Name>  Which contract in the build (default: the one stored with the record)
   --tx <hash>           Deployment transaction, to check the deployer too
-  --api <url>           A Hallmark server, to fetch the recorded sources (or $HALLMARK_API)
+  --api <url>           A Hallmark server for recorded sources (default: $HALLMARK_API or
+                        https://hallmark-jade.vercel.app); the verdict is computed here
   --rpc <url>           EVM RPC for qorechain-diana (default: https://evm-testnet.qore.host)
   --json                Print the result as JSON
 
@@ -51,7 +52,7 @@ const { positionals, values } = parseArgs({
     "build-info": { type: "string" },
     contract: { type: "string" },
     tx: { type: "string" },
-    api: { type: "string", default: process.env.HALLMARK_API },
+    api: { type: "string", default: process.env.HALLMARK_API ?? "https://hallmark-jade.vercel.app" },
     rpc: { type: "string" },
     address: { type: "string" },
     json: { type: "boolean", default: false },
