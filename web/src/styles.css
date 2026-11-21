@@ -600,3 +600,6 @@ pre {
 .badge-preview { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-block: 0 1rem; }
 
 .page-head { display: grid; gap: 0.75rem; margin-block-end: 2.5rem; }
+
+.record-notes { display: grid; gap: 0.75rem; }
+.record-notes .notice { margin: 0; }

@@ -12,3 +12,7 @@ export type { WindowPolicy, EnsureWindowResult } from "./window.js";
 export { compareWithRecord } from "./check.js";
 export type { CheckItem, CheckVerdict } from "./check.js";
 export { setLibSourcifyLoggerLevel } from "@ethereum-sourcify/lib-sourcify";
+export { detectProxy, EIP1967_IMPLEMENTATION_SLOT, EIP1967_BEACON_SLOT, EIP1822_PROXIABLE_SLOT } from "./proxy.js";
+export type { ProxyInfo } from "./proxy.js";
+export { planRecording } from "./plan.js";
+export type { RecordAction } from "./plan.js";

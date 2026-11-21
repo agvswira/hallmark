@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useId, useRef } from "react";
 import { useAccount, useReadContract, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { getContract, type ContractResponse, type SourceRef } from "../lib/api.js";
-import { CopyButton, MatchTag, PqTag, Spinner, explorer, short, useUserInvalidAria } from "../lib/ui.js";
+import { CopyButton, MatchTag, PqTag, RepoLink, Spinner, cleanText, explorer, short, useUserInvalidAria } from "../lib/ui.js";
 
 const REGISTRY = "0xa901ee7138266abc456c8d717fa94b043078b8c4" as const;
 const PQC_KEY_STATUS = "0x0000000000000000000000000000000000000a02" as const;
@@ -74,12 +74,13 @@ function ContractView({ data }: { data: ContractResponse }) {
       </div>
 
       <div className="record-grid">
+      <RecordWarnings data={data} match={match} />
       <section className="facts-wrap" aria-labelledby="facts-title">
         <h2 id="facts-title">Verification</h2>
         <div className="card">
           <dl className="facts">
             {r?.contract && (<><dt>Source</dt><dd><code>{r.contract.path}:{r.contract.name}</code></dd></>)}
-            <dt>Compiler</dt><dd><code>solc {h?.compiler ?? r?.compilerVersion}</code></dd>
+            <dt>Compiler</dt><dd><code>solc {cleanText(h?.compiler ?? r?.compilerVersion ?? "")}</code></dd>
             {r && (<><dt>Runtime / creation</dt><dd>{r.runtimeMatch ?? "–"} / {r.creationMatch ?? "–"}</dd></>)}
             {(h?.deployer ?? r?.deployer) && (
               <><dt>Deployer</dt><dd><a className="mono" href={explorer("address", (h?.deployer ?? r?.deployer)!)}>{h?.deployer ?? r?.deployer}</a></dd></>
@@ -111,6 +112,48 @@ function ContractView({ data }: { data: ContractResponse }) {
       </div>
     </>
   );
+}
+
+/** What the match does not prove, stated where the record is read. */
+function RecordWarnings({ data, match }: { data: ContractResponse; match: string }) {
+  const h = data.onchain;
+  const stored = data.stored?.result;
+  const p = data.proxy;
+  const notes: React.ReactNode[] = [];
+  if (p && p.upgradeable) {
+    notes.push(
+      <p key="proxy" className="notice bad">
+        <strong>This is an upgradeable proxy ({p.kind}).</strong> The hallmark covers the proxy's own code, not the code that
+        runs: it delegates to {p.implementation ? <a className="mono" href={explorer("address", p.implementation)}>{p.implementation}</a> : "an implementation the beacon did not report"}
+        {p.beacon ? <> through the beacon <span className="mono">{p.beacon}</span></> : null}, which can be replaced without changing this
+        record. Verify the implementation separately.
+      </p>,
+    );
+  } else if (p) {
+    notes.push(
+      <p key="clone" className="notice">
+        This is an EIP-1167 clone: it always runs the code at{" "}
+        <a className="mono" href={explorer("address", p.implementation!)}>{p.implementation}</a>. Verify that contract too.
+      </p>,
+    );
+  }
+  if (match === "partial") {
+    notes.push(
+      <p key="partial" className="notice">
+        <strong>Partial match:</strong> the executable code matches these sources, but the metadata does not, so the exact
+        sources, settings and compiler version are not proven.
+      </p>,
+    );
+  }
+  if (h && stored && h.sourceHash.toLowerCase() !== stored.sourceHash.toLowerCase()) {
+    notes.push(
+      <p key="mismatch" className="notice bad">
+        The sources shown below are not the ones in the on-chain record (source hash differs). Trust the record, and check it
+        yourself with <code>hallmark check</code>.
+      </p>,
+    );
+  }
+  return notes.length ? <div className="record-notes">{notes}</div> : null;
 }
 
 function PqcReport({ flags, refs }: { flags: number; refs: SourceRef[] }) {
@@ -185,7 +228,7 @@ function ClaimSection({ data }: { data: ContractResponse }) {
         <h2 id="claim-title">Repository</h2>
         <div className="card">
           <p>
-            Claimed by the deployer: <a href={h.claim.repo}>{h.claim.repo}</a>
+            Claimed by the deployer: <RepoLink repo={h.claim.repo} />
           </p>
           <p className="hint">
             The claim was accepted because the deployer has a registered ML-DSA-87 key

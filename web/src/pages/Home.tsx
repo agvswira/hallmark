@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { listContracts, type OnchainHallmark } from "../lib/api.js";
 import { HSeal } from "../lib/logo.js";
-import { Link, MatchTag, PqTag, Spinner, navigate, short, useUserInvalidAria } from "../lib/ui.js";
+import { Link, MatchTag, PqTag, RepoLink, Spinner, cleanText, navigate, short, useUserInvalidAria } from "../lib/ui.js";
 
 export function Home() {
   const { data, error, isLoading } = useQuery({ queryKey: ["contracts", 0], queryFn: () => listContracts(0) });
@@ -79,7 +79,7 @@ export function Home() {
           <li>
             <span className="n">03</span>
             <h3>Match</h3>
-            <p>Hallmark compiles with the official solc build. Full: every source and setting is identical. Partial: the code matches, the metadata differs.</p>
+            <p>Hallmark compiles with the official solc build. Full: every source and setting is identical. Partial: the executable code matches, but the sources, settings and compiler version are not proven.</p>
           </li>
           <li>
             <span className="n">04</span>
@@ -173,7 +173,7 @@ function ProofDiagram({ h }: { h: OnchainHallmark }) {
       <div className="proof">
         <div className="card">
           <div className="label">Repository source</div>
-          <div className="value">{h.claim ? h.claim.repo.replace(/^https?:\/\//, "") : "source hash"}</div>
+          <div className="value">{h.claim ? cleanText(h.claim.repo).replace(/^https?:\/\//, "") : "source hash"}</div>
           <div className="value muted" title={h.sourceHash}>{short(h.sourceHash, 10)}</div>
         </div>
         <span className="link" aria-hidden="true" />
@@ -236,7 +236,7 @@ function RegistryTable({ items, total }: { items: OnchainHallmark[]; total: numb
               <td><MatchTag match={h.match} current={h.isCurrent} /></td>
               <td><PqTag flags={h.pqcFlags} /></td>
               <td>
-                {h.claim ? <a href={h.claim.repo}>{h.claim.repo.replace(/^https?:\/\/(www\.)?/, "")}</a> : <span className="hint">Not claimed</span>}
+                {h.claim ? <RepoLink repo={h.claim.repo} bare /> : <span className="hint">Not claimed</span>}
               </td>
               <td>{new Date(h.verifiedAt * 1000).toLocaleDateString(undefined, { dateStyle: "medium" })}</td>
             </tr>

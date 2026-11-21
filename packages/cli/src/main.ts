@@ -19,6 +19,7 @@ import { parseArgs } from "node:util";
 import {
   SolcJsCompiler,
   compareWithRecord,
+  detectProxy,
   parseBuildInfo,
   registryReader,
   setLibSourcifyLoggerLevel,
@@ -63,6 +64,18 @@ const [command, arg] = positionals;
 setLibSourcifyLoggerLevel(0);
 const out = (line = "") => process.stdout.write(`${line}\n`);
 const mark = (ok: boolean) => (ok ? "✓" : "✗");
+/**
+ * Strings from the chain or a server (a claimed repository, a compiler string, an error message)
+ * are printed only after removing control characters, ANSI escapes and bidirectional overrides,
+ * which could rewrite the terminal output or disguise one URL as another.
+ */
+const clean = (s: unknown) => String(s ?? "").replace(/[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
+/** JSON output: JSON.stringify escapes control characters but not bidi overrides, so escape those too. */
+const json = (v: unknown) =>
+  JSON.stringify(v, (_k, x) => (typeof x === "bigint" ? x.toString() : x), 2).replace(
+    /[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g,
+    (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
 
 function requireAddress(value: string | undefined): string {
   if (!value || !/^0x[0-9a-fA-F]{40}$/.test(value)) throw new Error("Give a contract address: 0x followed by 40 hex characters.");
@@ -73,12 +86,24 @@ function printRecord(h: OnchainHallmark) {
   out(`HallmarkRegistry record for ${h.target}`);
   out(`  match          ${h.match}${h.isCurrent ? "" : " (the code has changed since)"}`);
   out(`  post-quantum   ${[h.pqcFlags & 1 ? "pqcVerify" : "", h.pqcFlags & 2 ? "pqcKeyStatus" : ""].filter(Boolean).join(" + ") || "none"}`);
-  out(`  compiler       solc ${h.compiler}`);
+  out(`  compiler       solc ${clean(h.compiler)}`);
   out(`  deployer       ${h.deployer}`);
   out(`  verified       ${new Date(h.verifiedAt * 1000).toISOString()}`);
   out(`  source hash    ${h.sourceHash}`);
   out(`  code hash      ${h.runtimeCodeHash}`);
-  out(`  claimed        ${h.claim ? `${h.claim.repo} (ML-DSA-87 key${h.claim.possessionProven ? ", proof of possession" : ""})` : "no"}`);
+  out(`  claimed        ${h.claim ? `${clean(h.claim.repo)} (ML-DSA-87 key${h.claim.possessionProven ? ", proof of possession" : ""})` : "no"}`);
+}
+
+/** Warns when the address is a proxy: its hallmark covers the proxy, not the code it delegates to. */
+async function printProxy(address: string) {
+  const p = await detectProxy(registryReader(values.rpc).client, address as `0x${string}`).catch(() => undefined);
+  if (!p) return;
+  if (p.upgradeable) {
+    out(`  proxy          ${p.kind}, upgradeable: runs ${p.implementation ?? "(beacon did not report an implementation)"}${p.beacon ? ` via beacon ${p.beacon}` : ""}`);
+    out(`                 The record covers the proxy only. Check the implementation too.`);
+  } else {
+    out(`  proxy          EIP-1167 clone of ${p.implementation}. Check that contract too.`);
+  }
 }
 
 async function loadRecord(address: string): Promise<OnchainHallmark | undefined> {
@@ -95,7 +120,7 @@ async function loadBuild(address: string): Promise<{ build: BuildInput; contract
   const url = `${values.api.replace(/\/$/, "")}/api/contract?address=${address.toLowerCase()}`;
   const res = await fetch(url);
   const body = (await res.json().catch(() => ({}))) as any;
-  if (!res.ok || !body.stored) throw new Error(`${url}: no stored sources (${body.error ?? res.status})`);
+  if (!res.ok || !body.stored) throw new Error(`${url}: no stored sources (${clean(body.error ?? res.status)})`);
   const r = body.stored.result;
   const build = parseBuildInfo({ solcLongVersion: r.compilerVersion, input: body.stored.input });
   const contract = values.contract ?? (r.contract ? `${r.contract.path}:${r.contract.name}` : undefined);
@@ -111,6 +136,7 @@ async function check(address: string): Promise<number> {
   const { build, contract, tx, from } = await loadBuild(address);
   if (!values.json) {
     printRecord(record);
+    await printProxy(address);
     out();
     out(`Recompiling here with solc ${build.compilerVersion} (sources from ${from})…`);
   }
@@ -125,10 +151,10 @@ async function check(address: string): Promise<number> {
   const { verdict, checks } = compareWithRecord(local, record);
 
   if (values.json) {
-    out(JSON.stringify({ verdict, checks, record, local }, (_k, v) => (typeof v === "bigint" ? v.toString() : v), 2));
+    out(json({ verdict, checks, record, local }));
   } else {
     out();
-    for (const c of checks) out(`  ${mark(c.ok)} ${c.name}: ${c.detail}`);
+    for (const c of checks) out(`  ${mark(c.ok)} ${c.name}: ${clean(c.detail)}`);
     out();
     out(
       {
@@ -147,8 +173,11 @@ async function status(address: string): Promise<number> {
     out(`${address} has no hallmark in the registry.`);
     return 3;
   }
-  if (values.json) out(JSON.stringify(record, null, 2));
-  else printRecord(record);
+  if (values.json) out(json(record));
+  else {
+    printRecord(record);
+    await printProxy(address);
+  }
   return 0;
 }
 
@@ -164,12 +193,18 @@ async function submit(): Promise<number> {
     body: JSON.stringify({ address, txHash: values.tx, contract: values.contract, compilerVersion: build.compilerVersion, input: build.input }),
   });
   const body = (await res.json().catch(() => ({}))) as any;
-  if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+  if (!res.ok) throw new Error(clean(body.error ?? `HTTP ${res.status}`));
   if (values.json) {
-    out(JSON.stringify(body, null, 2));
+    out(json(body));
   } else {
-    out(`${body.result.match} match${body.result.contract ? ` for ${body.result.contract.path}:${body.result.contract.name}` : ""}`);
-    out(body.recorded ? `recorded on chain: ${body.recordTx}` : `not recorded: ${body.reason}`);
+    out(`${clean(body.result.match)} match${body.result.contract ? ` for ${clean(body.result.contract.path)}:${clean(body.result.contract.name)}` : ""}`);
+    out(
+      body.recorded && body.unchanged
+        ? `already recorded with exactly this result; nothing new written${body.recordTx ? ` (${clean(body.recordTx)})` : ""}`
+        : body.recorded
+          ? `recorded on chain: ${clean(body.recordTx)}`
+          : `not recorded: ${clean(body.reason)}`,
+    );
   }
   return body.result.match === "none" ? 1 : 0;
 }

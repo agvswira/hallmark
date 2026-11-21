@@ -37,8 +37,16 @@ export interface VerifyResult {
   attempts: { contract: string; error: string }[];
 }
 
+export interface ProxyInfo {
+  kind: "eip1967" | "eip1967-beacon" | "eip1822" | "eip1167";
+  implementation?: string;
+  beacon?: string;
+  upgradeable: boolean;
+}
+
 export interface ContractResponse {
   address: string;
+  proxy: ProxyInfo | null;
   onchain: OnchainHallmark | null;
   stored: {
     result: VerifyResult;
@@ -51,6 +59,7 @@ export interface ContractResponse {
 export interface VerifyResponse {
   result: VerifyResult;
   recorded: boolean;
+  unchanged?: boolean;
   recordTx?: string;
   reason?: string;
 }

@@ -34,6 +34,30 @@ export function Link({ to, children, ...rest }: { to: string; children: ReactNod
 
 // ---------------------------------------------------------------- small pieces
 
+/**
+ * Text that came from the chain (a claimed repository, a compiler string) is displayed only after
+ * removing control characters and bidirectional overrides, which could disguise one URL as another.
+ */
+export const cleanText = (s: string) => s.replace(/[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "");
+
+/** An http(s) URL safe to put in href, or undefined (javascript:, data: and the like are refused). */
+export function safeHttpUrl(s: string): string | undefined {
+  try {
+    const url = new URL(cleanText(s));
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** A claimed repository: a link only when it is an http(s) URL, plain text otherwise. */
+export function RepoLink({ repo, bare = false }: { repo: string; bare?: boolean }) {
+  const text = cleanText(repo);
+  const href = safeHttpUrl(repo);
+  const shown = bare ? text.replace(/^https?:\/\/(www\.)?/, "") : text;
+  return href ? <a href={href} rel="nofollow noopener noreferrer">{shown}</a> : <span className="mono">{shown}</span>;
+}
+
 export const short = (hex?: string, n = 6) => (hex ? `${hex.slice(0, n + 2)}…${hex.slice(-4)}` : "");
 export const explorer = (kind: "address" | "tx", value: string) => `https://explore.qore.network/${kind}/${value}`;
 
@@ -86,7 +110,7 @@ function report(button: Element, ok: boolean) {
   button.removeAttribute("data-failed");
   tip.textContent = "";
   let message = ok ? "Copied" : "Copy failed";
-  if (message === lastMessage) message += " "; // VoiceOver skips an identical repeat
+  if (message === lastMessage) message += " "; // VoiceOver skips an identical repeat; a no-break space makes it differ
   lastMessage = message;
   button.setAttribute(ok ? "data-copied" : "data-failed", "");
   requestAnimationFrame(() => (tip.textContent = message));

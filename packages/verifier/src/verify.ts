@@ -9,6 +9,7 @@ import { createPublicClient, getAddress, http, keccak256, type Hex } from "viem"
 import { SolcJsCompiler } from "./compiler.js";
 import { detectPqc, type PqcReport } from "./pqc.js";
 import { sourceHash, type BuildInput, type ContractRef } from "./input.js";
+import { detectProxy, type ProxyInfo } from "./proxy.js";
 
 export const DIANA = {
   name: "QoreChain Diana testnet",
@@ -48,6 +49,8 @@ export interface VerifyResult {
   deployer?: string;
   deployTxHash?: string;
   pqc?: PqcReport;
+  /** Set when the address is a proxy: the match covers the proxy's code, not the implementation. */
+  proxy?: ProxyInfo;
   /** Why no match was found, per candidate tried. */
   attempts: { contract: string; error: string }[];
 }
@@ -76,9 +79,12 @@ export async function verifyContract(opts: VerifyOptions): Promise<VerifyResult>
     supported: true,
   } as ConstructorParameters<typeof SourcifyChain>[0]);
 
+  const proxy = await detectProxy(client as never, address, onchain).catch(() => undefined);
+
   const base: Omit<VerifyResult, "match" | "runtimeMatch" | "creationMatch" | "attempts"> = {
     address,
     chainId,
+    ...(proxy ? { proxy } : {}),
     compilerVersion,
     sourceHash: sourceHash(opts.build.input),
     onchainCodeHash: keccak256(onchain),

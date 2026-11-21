@@ -1,5 +1,5 @@
-import { parseBuildInfo, recordOnchain, verifyContract, type VerifyResult } from "@hallmark/verifier";
-import { fail, getCompiler, json, rateLimited, saveVerification } from "./_lib.js";
+import { parseBuildInfo, planRecording, recordOnchain, verifyContract, type VerifyResult } from "@hallmark/verifier";
+import { fail, getCompiler, json, loadVerification, rateLimited, reader, saveVerification } from "./_lib.js";
 
 /**
  * POST /api/verify
@@ -7,7 +7,10 @@ import { fail, getCompiler, json, rateLimited, saveVerification } from "./_lib.j
  *
  * The browser strips the compiler output from the build-info file and sends only the
  * standard JSON input (build-info files are often larger than the 4.5 MB request limit).
- * On a match with a known deployer, the result is recorded in HallmarkRegistry.
+ *
+ * Order matters: the existing on-chain record is read first, and sources are stored only after
+ * the result has been recorded (or when there is no record at all). Stored sources therefore never
+ * disagree with the registry, and a weaker or unrecordable submission cannot replace them.
  */
 export async function POST(request: Request): Promise<Response> {
   if (rateLimited(request)) return fail(429, "Too many verifications from this address. Try again in a minute.");
@@ -40,45 +43,60 @@ export async function POST(request: Request): Promise<Response> {
       creationTxHash: txHash,
       compiler: getCompiler(),
       rpcUrl: process.env.HALLMARK_RPC_URL || undefined,
+      // Each candidate is a full compilation: keep guessing cheap when no contract is named.
+      maxCandidates: 3,
     });
   } catch (err) {
     return fail(422, (err as Error).message);
   }
 
-  if (result.match === "none") return json({ result, recorded: false, reason: "No match." });
-
-  await saveVerification(address, { result, input: build.input as any, storedAt: new Date().toISOString() });
-
-  if (!result.deployer) {
-    return json({
-      result,
-      recorded: false,
-      reason: "Matched, but without the deployment transaction the deployer is unknown, so it was not recorded on chain.",
-    });
-  }
-
   const mnemonic = process.env.HALLMARK_VERIFIER_MNEMONIC;
   const publicUrl = process.env.HALLMARK_PUBLIC_URL?.replace(/\/$/, "");
-  if (!mnemonic || !publicUrl) {
-    return json({ result, recorded: false, reason: "This server has no verifier account or public URL configured." });
-  }
+  const sourceUri = publicUrl ? `${publicUrl}/c/${result.address.toLowerCase()}` : undefined;
+  const [existing, stored] = await Promise.all([reader().get(address), loadVerification(address)]);
+  const { action, reason } = planRecording(result, existing, {
+    canRecord: Boolean(mnemonic && publicUrl),
+    sourceUri,
+    stored: stored?.result,
+  });
+  const doc = { result, input: build.input as any, storedAt: new Date().toISOString() };
 
-  try {
-    const recordTx = await recordOnchain({
-      result,
-      mnemonic,
-      log: (m) => console.log(`[hallmark] ${m}`),
-      sourceUri: `${publicUrl}/c/${result.address.toLowerCase()}`,
-      rpcUrl: process.env.HALLMARK_RPC_URL || undefined,
-    });
-    await saveVerification(address, { result, input: build.input as any, recordTx, storedAt: new Date().toISOString() });
-    return json({ result, recorded: true, recordTx });
-  } catch (err) {
-    const message = (err as Error).message;
-    // A full hallmark cannot be downgraded: the registry refuses, and the existing record stands.
-    const reason = /Downgrade/.test(message)
-      ? "This code already has a full hallmark; a partial match does not replace it."
-      : `Matched, but recording on chain failed: ${message.split("\n")[0]}`;
-    return json({ result, recorded: false, reason });
+  switch (action) {
+    case "refuse":
+      return json({ result, recorded: false, reason });
+
+    case "store-only":
+      await saveVerification(address, doc);
+      return json({ result, recorded: false, reason });
+
+    case "unchanged": {
+      // The record stands. This result reproduces it exactly, so its sources are the right ones to
+      // keep: restore them if they are missing or do not match the record.
+      if (!stored || stored.result.sourceHash.toLowerCase() !== existing!.sourceHash.toLowerCase()) {
+        await saveVerification(address, { ...doc, recordTx: stored?.recordTx });
+      }
+      return json({ result, recorded: true, unchanged: true, recordTx: stored?.recordTx, reason });
+    }
+
+    case "record":
+      try {
+        const recordTx = await recordOnchain({
+          result,
+          mnemonic: mnemonic!,
+          sourceUri: sourceUri!,
+          log: (m) => console.log(`[hallmark] ${m}`),
+          rpcUrl: process.env.HALLMARK_RPC_URL || undefined,
+        });
+        await saveVerification(address, { ...doc, recordTx });
+        return json({ result, recorded: true, recordTx });
+      } catch (err) {
+        const message = (err as Error).message;
+        // Another verification can land between reading the record and sending: the registry then
+        // refuses a downgrade itself.
+        const reason = /Downgrade/.test(message)
+          ? "This code already has a full hallmark; a partial match does not replace it."
+          : `Matched, but recording on chain failed: ${message.split("\n")[0]}`;
+        return json({ result, recorded: false, reason });
+      }
   }
 }

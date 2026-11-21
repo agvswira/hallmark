@@ -1,3 +1,5 @@
+import { detectProxy } from "@hallmark/verifier";
+import { getAddress } from "viem";
 import { addressParam, reader } from "./_lib.js";
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
@@ -20,7 +22,11 @@ export async function GET(request: Request): Promise<Response> {
   let right = "invalid address";
   let color = "#5f6672";
   if (address) {
-    const h = await reader().get(address).catch(() => undefined);
+    const r = reader();
+    const [h, proxy] = await Promise.all([
+      r.get(address).catch(() => undefined),
+      detectProxy(r.client, getAddress(address)).catch(() => undefined),
+    ]);
     if (!h) {
       right = "not hallmarked";
     } else if (!h.isCurrent) {
@@ -28,7 +34,9 @@ export async function GET(request: Request): Promise<Response> {
       color = "#c23b3b";
     } else {
       const pq = h.pqcFlags ? " · PQ-guarded" : "";
-      right = `${h.match === "full" ? "full match" : "partial match"}${pq}`;
+      // An upgradeable proxy's hallmark says nothing about the code it runs: say so on the badge.
+      const px = proxy?.upgradeable ? " · proxy" : "";
+      right = `${h.match === "full" ? "full match" : "partial match"}${pq}${px}`;
       // White text on these keeps at least 4.5:1 contrast.
       color = h.match === "full" ? "#0f7a52" : "#a14f0b";
     }

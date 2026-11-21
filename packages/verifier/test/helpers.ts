@@ -65,6 +65,9 @@ export interface LocalChain {
   rpcUrl: string;
   stop(): void;
   deploy(abi: Abi, bytecode: Hex, args?: unknown[]): Promise<{ address: Hex; txHash: Hex }>;
+  /** Sends a call and waits for it to be mined. */
+  send(to: Hex, data: Hex): Promise<void>;
+  client: ReturnType<typeof createPublicClient>;
 }
 
 export async function startAnvil(chainId = 9800): Promise<LocalChain> {
@@ -86,7 +89,12 @@ export async function startAnvil(chainId = 9800): Promise<LocalChain> {
 
   return {
     rpcUrl,
+    client: publicClient,
     stop: () => proc.kill(),
+    async send(to, data) {
+      const hash = await wallet.sendTransaction({ to, data, chain: null });
+      await publicClient.waitForTransactionReceipt({ hash });
+    },
     async deploy(abi, bytecode, args = []) {
       const data = encodeDeployData({ abi, bytecode, args });
       const txHash = await wallet.sendTransaction({ data, chain: null });

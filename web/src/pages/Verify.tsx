@@ -196,7 +196,9 @@ function VerifyOutcome({ response }: { response: VerifyResponse }) {
       <p>
         <PqTag flags={r.pqc?.flags ?? 0} />
       </p>
-      {response.recorded ? (
+      {response.recorded && response.unchanged ? (
+        <p className="notice good">Already in HallmarkRegistry with exactly this result. Nothing new was written on chain.</p>
+      ) : response.recorded ? (
         <p className="notice good">
           Recorded in HallmarkRegistry:{" "}
           <a href={explorer("tx", response.recordTx!)} className="mono">{short(response.recordTx, 10)}</a>
