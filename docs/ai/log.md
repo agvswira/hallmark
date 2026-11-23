@@ -352,3 +352,45 @@ advised against a token that bypasses 2FA.
 **Checked from npm:** about 4 minutes after publishing, `npx -y @agvswira/hallmark@0.1.0 check
 0xa901ee7138266abc456c8d717fa94b043078b8c4` in an empty folder recompiled the registry locally and
 confirmed all six checks (exit 0).
+
+## 2026-11-22: Home and README
+
+**Agent (builder):** the Home page links Try it from the hero and shows the `npx @agvswira/hallmark check`
+command, with a copy button, to reviewers (`f84eae6`). Rewrote the README after reading GitHub's README
+guidance, the standard-readme spec, awesome-readme and Sourcify's README: one-line pitch, badges (Hallmark's
+own record badge first), why, a how-it-works diagram, quick starts by reader, the trust model, live records,
+development, credits and licence (`3d57f11`). Added the fest's "Built on QoreChain" badge at the owner's
+request (`e107eda`).
+
+**Checked:** every relative link in the README resolves; the external badges and pages answer; GitHub's
+Markdown API renders the alert, tables, logo and diagram. The copy button could not be tested in the
+agent's browser (clipboard permission denied there); the owner was asked to try it in Chrome.
+
+## 2026-11-23: the demo video, made with unveo
+
+**Owner decided (D12):** make the demo video with unveo; an AI voice; show the QoreX deploy and claim through
+their result (the claimed sample's record) rather than recording the wallet; approved the script, voice and
+the "candy" background on unveo's review page; chose one more round of fixes after the frame review.
+
+**Agent:**
+- Inspected the unveo npm package before installing it (installer, scripts, network calls): it installs a
+  skill folder, uses edge-tts or offline Kokoro for the voice, and serves its review page from unveo.dev
+  against a local server. Installed without logging in.
+- Scouted the live app, wrote the pitch and tour, recorded the tour in one automated take (read-only: no form
+  submitted, no wallet connected), captured a real `npx @agvswira/hallmark check` run, and wrote the narration
+  to the footage with a source tag on every claim (`script.py check`: every number said is on screen).
+- Patched two Windows bugs in the local unveo copy (an unescaped font path in an ffmpeg filter; a negative audio
+  delay in the per-scene previews) and worked around a third (the page zoom is read only at the top level of
+  steps.json). The Hallmark repository was not changed by any of this.
+- Graded every sampled frame against unveo's critique (8/10 to pass) over three rounds of fixes: faster
+  entrances, card transitions, a warmed API so the record page loads off camera, a larger page zoom, larger
+  terminal and explainer type.
+
+**Result:** `unveo-out/demo-video.mp4` (gitignored), 2:43, 2560×1440, −14.1 LUFS, captions burned in. QA passes
+34 of 35 blocking gates; the frames gate fails because 35 of 63 frames were graded 6 or 7, mostly the app's own
+small text at full-page scale and frames in mid-transition. The video was published with unveo's own publish
+step and that gate noted in `quality-check.md`.
+
+**Not true of the video:** the four agvswira/attenua records in the registry are from the owner's own account;
+the narration does not present them as other teams'. The opening line about other chains is general context,
+not from the repo, and was shown as such on the review page.
