@@ -1,6 +1,6 @@
 {
   "name": "@agvswira/hallmark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Check a QoreChain contract against its HallmarkRegistry record from your own machine: recompile with the official solc build and compare with the chain.",
   "license": "MIT",
   "author": "Komang Agus Wira Adnyana",

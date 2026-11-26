@@ -1,6 +1,6 @@
 {
   "name": "@hallmark/verifier",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Hallmark verification engine: recompile Solidity sources and match them against QoreChain bytecode, with a PQC precompile report.",
   "main": "dist/index.js",
   "scripts": {
