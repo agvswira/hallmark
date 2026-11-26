@@ -42,6 +42,10 @@ export async function GET(request: Request): Promise<Response> {
     }
   }
   return new Response(svg("Hallmark", right, color), {
-    headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=300" },
+    headers: {
+      "content-type": "image/svg+xml; charset=utf-8",
+      "cache-control": "public, max-age=300",
+      "access-control-allow-origin": "*",
+    },
   });
 }

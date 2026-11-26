@@ -42,8 +42,10 @@ export interface RegistryReader {
   get(target: string): Promise<OnchainHallmark | undefined>;
 }
 
+const RPC_HTTP_OPTIONS = { retryCount: 3, retryDelay: 400, timeout: 15_000 } as const;
+
 export function registryReader(rpcUrl: string = diana.rpcUrls.default.http[0], registry: Address = REGISTRY_ADDRESS): RegistryReader {
-  const client = createPublicClient({ chain: diana, transport: http(rpcUrl) }) as PublicClient;
+  const client = createPublicClient({ chain: diana, transport: http(rpcUrl, RPC_HTTP_OPTIONS) }) as PublicClient;
   const read = <T>(functionName: string, args: unknown[] = []) =>
     client.readContract({ address: registry, abi: hallmarkRegistryAbi, functionName: functionName as any, args: args as any }) as Promise<T>;
 
@@ -106,8 +108,8 @@ export async function recordOnchain(opts: {
 
   const rpcUrl = opts.rpcUrl ?? diana.rpcUrls.default.http[0];
   const account = mnemonicToAccount(opts.mnemonic.trim()); // m/44'/60'/0'/0/0, as the SDK derives it
-  const wallet = createWalletClient({ account, chain: diana, transport: http(rpcUrl) });
-  const pub = createPublicClient({ chain: diana, transport: http(rpcUrl) });
+  const wallet = createWalletClient({ account, chain: diana, transport: http(rpcUrl, RPC_HTTP_OPTIONS) });
+  const pub = createPublicClient({ chain: diana, transport: http(rpcUrl, RPC_HTTP_OPTIONS) });
 
   const args = [
     getAddress(result.address),

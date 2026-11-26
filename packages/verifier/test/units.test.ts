@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canonicalJson, parseBuildInfo, sourceHash } from "../src/input.js";
-import { findSourceRefs, pushedValues, stripMetadata, hexToBytes } from "../src/pqc.js";
+import { findSourceRefs, pushedValues, scanCallTargets, detectPqc, stripMetadata, hexToBytes } from "../src/pqc.js";
 import { toLevel } from "../src/verify.js";
 
 const INPUT = {
@@ -84,6 +84,22 @@ describe("bytecode scanning", () => {
 
   it("rejects malformed hex", () => {
     expect(() => pushedValues("0x6g")).toThrow();
+  });
+
+  it("ignores PUSH values immediately followed by JUMP/JUMPI or bytecode with no call opcode (A7)", () => {
+    // PUSH2 0x0a01; JUMP; PUSH2 0x0a02; JUMPI; STATICCALL
+    const jumpOnly = "0x610a0156610a0257fa";
+    expect(scanCallTargets(jumpOnly)).toEqual({ hasCall: true, targets: [] });
+    expect(detectPqc(jumpOnly).flags).toBe(0);
+
+    // PUSH2 0x0a01; STOP (no call opcode anywhere)
+    const noCall = "0x610a0100";
+    expect(scanCallTargets(noCall)).toEqual({ hasCall: false, targets: [0xa01n] });
+    expect(detectPqc(noCall).flags).toBe(0);
+
+    // PUSH2 0x0a01; POP; STATICCALL
+    const realCall = "0x610a0150fa";
+    expect(detectPqc(realCall)).toMatchObject({ usesVerify: true, usesKeyStatus: false, flags: 1 });
   });
 });
 

@@ -80,6 +80,23 @@ describe("red team: the post-quantum report", () => {
     expect(r.match).toBe("full");
     expect(r.pqc?.flags).toBe(0);
   }, 120_000);
+
+  it("A7: returning 0x0a01 / 0x0a02 constants without any external call is not reported as PQ-guarded", async () => {
+    const fakeConstants = `// SPDX-License-Identifier: MIT
+pragma solidity 0.8.28;
+
+contract FakeConstants {
+    function ids() external pure returns (uint256, uint256) {
+        return (0x0a01, 0x0a02);
+    }
+}
+`;
+    const d = await deploy({ "FakeConstants.sol": fakeConstants }, "FakeConstants.sol", "FakeConstants");
+    const r = await verify(d.address, { "FakeConstants.sol": fakeConstants }, "FakeConstants.sol:FakeConstants", {}, SOLC, d.txHash);
+    expect(r.match).toBe("full");
+    expect(r.pqc?.flags).toBe(0);
+    expect(r.pqc?.sourceRefs).toEqual([]);
+  }, 120_000);
 });
 
 describe("red team: proxies", () => {

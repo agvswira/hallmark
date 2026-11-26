@@ -11,7 +11,15 @@ export async function GET(request: Request): Promise<Response> {
   const end = Math.max(total - page * limit, 0);
   const start = Math.max(end - limit, 0);
   const targets = end > start ? (await r.targets(start, end - start)).reverse() : [];
-  const items = (await Promise.all(targets.map((t) => r.get(t)))).filter(Boolean);
+  // Bound concurrent eth_call fan-out (each r.get issues 3 reads) to avoid testnet RPC 503 bursts.
+  const items = [];
+  for (let i = 0; i < targets.length; i += 3) {
+    const batch = await Promise.all(targets.slice(i, i + 3).map((t) => r.get(t)));
+    for (const item of batch) if (item) items.push(item);
+  }
 
-  return json({ total, page, limit, items }, 200, { "cache-control": "public, max-age=0, s-maxage=3, stale-while-revalidate=30" });
+  return json({ total, page, limit, items }, 200, {
+    "cache-control": "public, max-age=0, s-maxage=3, stale-while-revalidate=30",
+    "access-control-allow-origin": "*",
+  });
 }

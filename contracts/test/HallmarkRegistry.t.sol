@@ -305,4 +305,39 @@ contract HallmarkRegistryTest is Test {
         _record(target, HallmarkRegistry.Match.Full, 0, deployer);
         assertEq(registry.claimOf(target).claimant, deployer);
     }
+
+    // ------------------------------------------------------------ fuzz
+
+    function testFuzz_UnauthorizedCannotRecordOrAdmin(address caller) public {
+        vm.assume(caller != verifier && caller != owner);
+        vm.startPrank(caller);
+        vm.expectRevert(HallmarkRegistry.NotVerifier.selector);
+        registry.recordVerification(target, HallmarkRegistry.Match.Full, 0, deployer, SOURCE_HASH, COMPILER, URI);
+
+        vm.expectRevert(HallmarkRegistry.NotOwner.selector);
+        registry.setVerifier(caller);
+
+        vm.expectRevert(HallmarkRegistry.NotOwner.selector);
+        registry.transferOwnership(caller);
+        vm.stopPrank();
+    }
+
+    function testFuzz_TextLengthBoundary(uint16 len) public {
+        len = uint16(bound(len, 0, 512));
+        bytes memory raw = new bytes(len);
+        for (uint256 i; i < len; i++) {
+            raw[i] = "a";
+        }
+        string memory text = string(raw);
+
+        uint256 maxLen = registry.MAX_TEXT_LENGTH();
+        vm.prank(verifier);
+        if (len == 0 || len > maxLen) {
+            vm.expectRevert(HallmarkRegistry.InvalidText.selector);
+            registry.recordVerification(target, HallmarkRegistry.Match.Full, 0, deployer, SOURCE_HASH, text, URI);
+        } else {
+            registry.recordVerification(target, HallmarkRegistry.Match.Full, 0, deployer, SOURCE_HASH, text, URI);
+            assertEq(registry.hallmarkOf(target).compiler, text);
+        }
+    }
 }

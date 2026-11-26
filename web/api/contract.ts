@@ -17,5 +17,6 @@ export async function GET(request: Request): Promise<Response> {
 
   return json({ address, onchain: onchain ?? null, stored: stored ?? null, proxy: proxy ?? null }, 200, {
     "cache-control": "public, max-age=0, s-maxage=3, stale-while-revalidate=30",
+    "access-control-allow-origin": "*",
   });
 }

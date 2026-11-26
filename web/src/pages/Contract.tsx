@@ -108,6 +108,33 @@ function ContractView({ data }: { data: ContractResponse }) {
         </div>
       </section>
 
+      <section aria-labelledby="recheck-title">
+        <h2 id="recheck-title">Recheck independently</h2>
+        <div className="copy-row">
+          <code id="cli-recheck">npx @agvswira/hallmark check {data.address}</code>
+          <CopyButton target="cli-recheck" label="Copy check command" />
+        </div>
+        {data.stored?.input && (
+          <div className="actions">
+            <button
+              type="button"
+              className="button ghost"
+              onClick={() => {
+                const blob = new Blob([JSON.stringify(data.stored!.input, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `hallmark-${data.address.slice(0, 10)}-input.json`;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              }}
+            >
+              Download standard JSON input
+            </button>
+          </div>
+        )}
+      </section>
+
       {data.stored && <Sources sources={data.stored.input.sources} main={r?.contract?.path} />}
       </div>
     </>

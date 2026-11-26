@@ -7,7 +7,7 @@ import { CopyButton, Link, MatchTag, PqTag, RepoLink, Spinner, cleanText, naviga
 export function Home() {
   const { data, error, isLoading } = useQuery({ queryKey: ["contracts", 0], queryFn: () => listContracts(0) });
   const items = data?.items ?? [];
-  const latest = items[0];
+  const latest = items.find((h) => h.isCurrent && h.match === "full" && h.pqcFlags > 0 && h.claim) ?? items[0];
 
   return (
     <>

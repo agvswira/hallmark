@@ -8,11 +8,11 @@ import { existsSync, readFileSync } from "node:fs";
 
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" });
 
-const SECRET_KEYS = /^(PRIVATE_KEY|QORE_MNEMONIC|QORE_PQC_RECOVERY_CODE|.*_SECRET|.*_TOKEN|.*API_KEY)$/;
+const SECRET_KEYS = /^(PRIVATE_KEY|.*_MNEMONIC|QORE_PQC_RECOVERY_CODE|.*_SECRET|.*_TOKEN|.*API_KEY)$/;
 const ZERO_KEY = /^0x0{64}$/;
 
 const localSecrets = new Set();
-for (const envFile of ["contracts/.env", "web/.env", ".env"]) {
+for (const envFile of ["contracts/.env", "web/.env", ".env", ".env.local"]) {
   if (!existsSync(envFile)) continue;
   for (const line of readFileSync(envFile, "utf8").split(/\r?\n/)) {
     const m = line.match(/^([A-Z0-9_]+)=(.+)$/);

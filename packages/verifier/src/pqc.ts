@@ -44,15 +44,48 @@ export function pushedValues(runtimeHex: string): bigint[] {
   return values;
 }
 
+/**
+ * Scans deployed bytecode (metadata trailer excluded) for call opcodes and PUSH values
+ * that are not immediate JUMP (0x56) / JUMPI (0x57) destinations (Attack A7).
+ */
+export function scanCallTargets(runtimeHex: string): { hasCall: boolean; targets: bigint[] } {
+  const code = stripMetadata(hexToBytes(runtimeHex));
+  const targets: bigint[] = [];
+  let hasCall = false;
+  for (let i = 0; i < code.length; i++) {
+    const op = code[i];
+    if (op === 0xf1 || op === 0xf2 || op === 0xf4 || op === 0xfa) {
+      hasCall = true;
+    } else if (op >= 0x60 && op <= 0x7f) {
+      const n = op - 0x5f;
+      let v = 0n;
+      for (let j = 1; j <= n && i + j < code.length; j++) v = (v << 8n) | BigInt(code[i + j]);
+      const nextOp = i + n + 1 < code.length ? code[i + n + 1] : undefined;
+      if (nextOp !== 0x56 && nextOp !== 0x57) {
+        targets.push(v);
+      }
+      i += n;
+    }
+  }
+  return { hasCall, targets };
+}
+
 export function detectPqc(runtimeHex: string, sources: Record<string, { content?: string }> = {}): PqcReport {
-  const pushed = new Set(pushedValues(runtimeHex));
-  const usesVerify = pushed.has(PQC_VERIFY);
-  const usesKeyStatus = pushed.has(PQC_KEY_STATUS);
+  const { hasCall, targets } = scanCallTargets(runtimeHex);
+  const pushed = new Set(targets);
+  const usesVerify = hasCall && pushed.has(PQC_VERIFY);
+  const usesKeyStatus = hasCall && pushed.has(PQC_KEY_STATUS);
+  const sourceRefs =
+    usesVerify || usesKeyStatus
+      ? findSourceRefs(sources).filter(
+          (ref) => (ref.precompile === "pqcVerify" && usesVerify) || (ref.precompile === "pqcKeyStatus" && usesKeyStatus),
+        )
+      : [];
   return {
     usesVerify,
     usesKeyStatus,
     flags: (usesVerify ? 1 : 0) | (usesKeyStatus ? 2 : 0),
-    sourceRefs: findSourceRefs(sources),
+    sourceRefs,
   };
 }
 
