@@ -1,6 +1,7 @@
 # 5-Minute Keyless Judge Walkthrough — Hallmark
 
 No wallet extension, private keys, or API keys are required to verify every claim in **Hallmark** against live `qorechain-diana` (Chain ID `9800`) and [`https://hallmark-jade.vercel.app`](https://hallmark-jade.vercel.app).
+> **Demo video (2:43):** [`https://youtu.be/bQ6GsjzvASY`](https://youtu.be/bQ6GsjzvASY) · **Portal page:** [`https://build.qorechain.io/p/hallmark`](https://build.qorechain.io/p/hallmark)
 
 ---
 

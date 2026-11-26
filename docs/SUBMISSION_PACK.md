@@ -5,10 +5,13 @@
 
 ---
 
-## CRITICAL ACTION REQUIRED BEFORE DEADLINE
+## Submission Status: COMPLETE & LIVE
 
-- [ ] **Upload Demo Video to YouTube & Link on Portal**: `https://build.qorechain.io/p/hallmark` currently has **no video linked**! The rendered master video (`unveo-out/demo-video.mp4`, `2:42.9`, `2560×1440`, `-14.1 LUFS`) is ready on disk, within the strict `≤ 3 minutes` rule, and must be uploaded to YouTube and pasted into the project form.
-- [ ] **Approve & Push Local Hardening Commits + Redeploy Vercel**: Run `git push`, `vercel --prod` (from `web/`), and optionally `npm publish` (`0.1.1` for `@agvswira/hallmark`) once reviewed.
+- [x] **Demo Video Linked on Portal**: [`https://youtu.be/bQ6GsjzvASY`](https://youtu.be/bQ6GsjzvASY) (`unveo-out/demo-video.mp4`, `2:42.9`, `2560×1440`, `-14.1 LUFS`).
+- [x] **GitHub Pushed & Clean**: [`https://github.com/agvswira/hallmark`](https://github.com/agvswira/hallmark) (`main`).
+- [x] **Vercel Production Live**: [`https://hallmark-jade.vercel.app`](https://hallmark-jade.vercel.app) (`/verify` 1-click keyless sample, `/c/` independent recheck, CORS `*` on public read endpoints).
+- [x] **npm CLI Published (`0.1.1`)**: [`@agvswira/hallmark@0.1.1`](https://www.npmjs.com/package/@agvswira/hallmark) (`npx -y @agvswira/hallmark@0.1.1 check 0xa901ee7138266abc456c8d717fa94b043078b8c4` confirmed).
+- [x] **Portal Verified Signals**: `QoreScan` Verified, `QoreX integrations` Verified, `QoreChain SDK` Verified, `AI-Native` Verified, `Quantum Campus` & `Regional (ID, Asia-Pacific)` selected.
 
 ---
 
@@ -30,10 +33,19 @@
 
 ## 2. Testnet Addresses on `qorechain-diana`
 
-- `HallmarkRegistry` (EVM): `0xa901ee7138266abc456c8d717fa94b043078b8c4`
-- `QuantumGuestbook` sample (EVM, QoreX deployed & claimed): `0xf5340e357e16da6b9ded7ad9c86148df2ec5f992`
-- Verifier Server Account (Native): `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`)
-- Owner Account (Native): `0xdd8874f79Ec76375B463FAF4AA49f37474173325`
+```text
+qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl
+qor1866wh676a00t78edc9x40wnq6xgcjq60x25mrl
+qor1mky8fau7ca3htdrrlt625j0nw36pwve9hv7k5t
+qor14yq7uufcye4tc3tv34chl22tqsc83wxycjz4x8
+qor1756qudt7zmdxh80d0tvusc2gmuhvt7vjddycwk
+```
+
+- Verifier Server Account: `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`)
+- QoreX Coin-60 Account (`QuantumGuestbook` deployer/claimant): `qor1866wh676a00t78edc9x40wnq6xgcjq60x25mrl` (`0x3eb4EBEBDAEBDebF1f2dC14d57BA60D19189034f`)
+- Owner Coin-118 Account (Registry owner): `qor1mky8fau7ca3htdrrlt625j0nw36pwve9hv7k5t` (`0xdd8874f79Ec76375B463FAF4AA49f37474173325`)
+- `HallmarkRegistry` Contract (EVM): `qor14yq7uufcye4tc3tv34chl22tqsc83wxycjz4x8` (`0xa901ee7138266abc456c8d717fa94b043078b8c4`)
+- `QuantumGuestbook` Sample Contract (EVM): `qor1756qudt7zmdxh80d0tvusc2gmuhvt7vjddycwk` (`0xf5340e357e16da6b9ded7ad9c86148df2ec5f992`)
 
 ---
 

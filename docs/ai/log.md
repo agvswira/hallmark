@@ -411,4 +411,9 @@ not from the repo, and was shown as such on the review page.
 - First run of `testFuzz_TextLengthBoundary` failed because `registry.MAX_TEXT_LENGTH()` consumed `vm.prank(verifier)`, and `invariant_FullNeverDowngradedForSameCode` failed on an artificial `codeA → codeB → codeA` swap in the handler; both fixed in `060c101`.
 - Vitest on Windows failed when invoked from a lowercase `d:\` shell path via `cmd /c` (`Cannot read properties of undefined (reading 'config')`); running from `D:\hallmark\packages\verifier` succeeded cleanly (`61/61`).
 
-**Checked:** `npm run test:all` (`43/43` Foundry, `61/61` verifier, CLI/web typecheck & build), `npm run verify` (`16/16`), live `hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4` (`CONFIRMED`), and `node scripts/scan-secrets.mjs`. Local commits only (`git push`, `vercel --prod`, and YouTube/portal updates left for owner approval).
+**Checked:** `npm run test:all` (`43/43` Foundry, `61/61` verifier, CLI/web typecheck & build), `npm run verify` (`16/16`), live `hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4` (`CONFIRMED`), and `node scripts/scan-secrets.mjs`.
+
+**Shipped (same day):**
+- Pushed hardening commits to `origin/main` and deployed to Vercel production (`https://hallmark-jade.vercel.app`, live 1-click sample `POST /api/verify` returned `200`, `full`, `pqcFlags: 2`, `unchanged: true`).
+- Bumped `@hallmark/verifier` and `@agvswira/hallmark` to `0.1.1` (`940463e`), verified `npm pack --dry-run` (4 files, 1.1 MB), and the owner published `0.1.1` to npm with 2FA (`npx -y @agvswira/hallmark@0.1.1 check` confirmed exit `0`).
+- Owner uploaded `unveo-out/demo-video.mp4` to [`https://youtu.be/bQ6GsjzvASY`](https://youtu.be/bQ6GsjzvASY) and updated `https://build.qorechain.io/p/hallmark` (`QoreScan`, `QoreX integrations`, `QoreChain SDK`, and `AI-Native` all showing **Verified**).

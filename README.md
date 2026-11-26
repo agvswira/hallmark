@@ -13,7 +13,7 @@ Source verification and a post-quantum report for contracts on `qorechain-diana`
 [![npm](https://img.shields.io/npm/v/@agvswira/hallmark?label=npx%20%40agvswira%2Fhallmark)](https://www.npmjs.com/package/@agvswira/hallmark)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-[**Live app**](https://hallmark-jade.vercel.app) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [**5-Min Judge Walkthrough**](JUDGES.md) · [CLI](packages/cli/README.md) · [CBOM](docs/cbom.json) · [How the AI was used](AI_USAGE.md)
+[**Live app**](https://hallmark-jade.vercel.app) · [**Demo video**](https://youtu.be/bQ6GsjzvASY) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [**5-Min Judge Walkthrough**](JUDGES.md) · [CLI](packages/cli/README.md) · [CBOM](docs/cbom.json) · [How the AI was used](AI_USAGE.md)
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
