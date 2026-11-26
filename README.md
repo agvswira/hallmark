@@ -13,14 +13,14 @@ Source verification and a post-quantum report for contracts on `qorechain-diana`
 [![npm](https://img.shields.io/npm/v/@agvswira/hallmark?label=npx%20%40agvswira%2Fhallmark)](https://www.npmjs.com/package/@agvswira/hallmark)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-[**Live app**](https://hallmark-jade.vercel.app) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [CLI](packages/cli/README.md) · [How the AI was used](AI_USAGE.md)
+[**Live app**](https://hallmark-jade.vercel.app) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [**5-Min Judge Walkthrough**](JUDGES.md) · [CLI](packages/cli/README.md) · [CBOM](docs/cbom.json) · [How the AI was used](AI_USAGE.md)
 
 Built for [Build Before Q-Day](https://build.qorechain.io), Quantum Pass category.
 
 </div>
 
 > [!NOTE]
-> The first badge above is Hallmark's own: the registry contract, verified by Hallmark and recorded in itself.
+> The second badge above is Hallmark's own: the registry contract, verified by Hallmark and recorded in itself.
 
 ## Why
 
@@ -98,8 +98,8 @@ six facts with the on-chain record. Exit code 0 means confirmed. See the [CLI RE
 - **The registry trusts one verifier account** to record results. That account can only spend through
   EVM windows scoped to `HallmarkRegistry` (`allowedTargets`), so a leaked server key could not move its
   funds through the EVM; a transfer outside the scope was refused on diana.
-- **Red-teamed.** An AI red-team run tried 13 attacks: edited sources, missing metadata, another compiler,
-  fake PQC verifiers, proxies, stored-source poisoning, link and terminal injection, gas drain. The gaps
+- **Red-teamed.** An AI red-team run tried 14 attacks: edited sources, missing metadata, another compiler,
+  fake PQC verifiers, non-call / jump-target PQC constants, proxies, stored-source poisoning, link and terminal injection, gas drain. The gaps
   it found are fixed with regression tests. See [docs/ai/redteam.md](docs/ai/redteam.md).
 - **Proxies are flagged.** An upgradeable proxy's hallmark covers the proxy, not the code it delegates
   to; the page, the badge and the CLI say so and show the live implementation.
@@ -114,6 +114,7 @@ Testnet only. See [Limits](AI_USAGE.md#limits) for what is not covered.
 | `HallmarkRegistry` | [`0xa901ee7138266abc456c8d717fa94b043078b8c4`](https://explore.qore.network/address/0xa901ee7138266abc456c8d717fa94b043078b8c4), deployed in `0x16edaac4…92e7` (block 10446802) |
 | First hallmark: the registry itself | Full match, `pqcKeyStatus`; [record page](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4) |
 | First claim with a real QoreX wallet | [`QuantumGuestbook` sample](https://hallmark-jade.vercel.app/c/0xf5340e357e16da6b9ded7ad9c86148df2ec5f992): deploy `0xbeed8439…a970`, record `0xd944c3ea…1c6e`, claim `0x2ff0b2be…65aa` |
+| Ecosystem records (6 total on chain) | All 4 [`Attenua`](https://github.com/agvswira/attenua) contracts (also built by the owner) are full-matched and ML-DSA-87 claimed, including [`AttenuaVault`](https://hallmark-jade.vercel.app/c/0xf585fc6e1e43446f353830e0d11ff44ce747af58) (`pqcVerify` + `pqcKeyStatus`) |
 | Verifier account (server) | `qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl` (`0x649934C10225DDeD1d15a59e43221b1767b81ad2`) |
 | Owner (can replace the verifier) | `0xdd8874f79Ec76375B463FAF4AA49f37474173325`, the project owner's QoreX account. It is a coin-118 account, which cannot send EVM transactions directly, so the owner functions are unreachable from QoreX for now ([Limits](AI_USAGE.md#limits)) |
 | Network | `qorechain-diana`, EVM chain id 9800 · RPC `https://evm-testnet.qore.host` · REST `https://api-testnet.qore.host` |
@@ -122,26 +123,36 @@ Testnet only. See [Limits](AI_USAGE.md#limits) for what is not covered.
 
 | Path | What |
 |---|---|
-| [`contracts/`](contracts) | `HallmarkRegistry` and the `QuantumGuestbook` sample, with Foundry tests |
+| [`JUDGES.md`](JUDGES.md) | 5-minute keyless judge walkthrough |
+| [`contracts/`](contracts) | `HallmarkRegistry` and the `QuantumGuestbook` sample, with Foundry unit, fuzz, and invariant tests |
 | [`packages/verifier/`](packages/verifier/README.md) | The verification engine: recompile, match, PQC report, proxy detection, recording |
 | [`packages/cli/`](packages/cli/README.md) | `@agvswira/hallmark` on npm: `status`, `check`, `verify` |
 | [`web/`](web/README.md) | The web app and API (Vite + React on Vercel): verify, registry, record pages, claim, badge, Try it |
+| [`docs/cbom.json`](docs/cbom.json) | CycloneDX 1.6 cryptographic inventory (`npm run cbom` via `@qorechain/qorescan`) |
 | [`docs/ai/`](docs/ai) | The log, ledger, red-team report and reviews behind [AI_USAGE.md](AI_USAGE.md) |
-| [`scripts/`](scripts) | Repository tooling (the pre-commit secret scan) |
+| [`scripts/`](scripts) | Repository tooling (`verify-submission.mjs` and the pre-commit secret scan) |
 
 ## Development
 
 Each block starts from the repository root.
 
 ```sh
-# Contracts: 36 Foundry tests. forge comes from the @foundry-rs/forge npm package,
-# so no global Foundry install is needed.
+# Keyless end-to-end audit (live diana chain, API, CLI recompile, CBOM, AI-Native artifacts)
+npm install && npm run verify
+
+# Full contract, verifier, CLI, and web test/build suite
+npm run test:all
+```
+
+```sh
+# Contracts: 43 Foundry tests (6 sample + 32 unit/fuzz + 5 stateful invariants × 8,192 calls).
+# forge comes from the @foundry-rs/forge npm package, so no global Foundry install is needed.
 cd contracts
 npm install && npm run forge-std && npm test
 ```
 
 ```sh
-# Verifier: 59 tests, including end-to-end and red-team tests on a local anvil chain.
+# Verifier: 61 tests across 7 files, including end-to-end and red-team tests on a local anvil chain.
 cd packages/verifier
 npm install && npm test && npm run build
 ```
@@ -164,7 +175,8 @@ name, secrets only in gitignored `.env` files, testnet only, and a secret scan o
   (`foundry` and `viem-wagmi` templates), including the template's `scripts/window.ts` EVM window helper.
 - [`@qorechain/sdk`](https://www.npmjs.com/package/@qorechain/sdk),
   [`@qorechain/evm`](https://www.npmjs.com/package/@qorechain/evm),
-  [`@qorechain/qorex-rainbowkit`](https://www.npmjs.com/package/@qorechain/qorex-rainbowkit).
+  [`@qorechain/qorex-rainbowkit`](https://www.npmjs.com/package/@qorechain/qorex-rainbowkit),
+  [`@qorechain/qorescan`](https://www.npmjs.com/package/@qorechain/qorescan).
 - [`@ethereum-sourcify/lib-sourcify`](https://github.com/argotorg/sourcify) (MIT) for bytecode matching, and
   [solc-js](https://github.com/ethereum/solc-js) (MIT) with the official soljson builds.
 - [Manrope](https://github.com/sharanda/manrope) (SIL Open Font License) via [Fontsource](https://fontsource.org), self-hosted.

@@ -34,7 +34,7 @@ const result = await verifyContract({ address, creationTxHash, build });
 
 ```sh
 npm install
-npm test        # 25 tests: unit tests, and end-to-end runs on a local anvil chain (chain id 9800)
+npm test        # 61 tests across 7 files: unit tests, red-team suite, and end-to-end runs on local anvil (chain id 9800)
 ```
 
 The end-to-end tests deploy real compiled contracts to anvil and check: full match with the

@@ -1,0 +1,16 @@
+{
+  "name": "hallmark",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Source verification and post-quantum reporting for contracts on QoreChain (qorechain-diana).",
+  "scripts": {
+    "cbom": "qorescan scan --network testnet --address qor1vjvnfsgzyhw768g45k0yxgsmzanmsxkjgw8yjl --solidity contracts/src --out docs/cbom.json",
+    "verify": "node scripts/verify-submission.mjs",
+    "test:all": "npm --prefix contracts test && npm --prefix packages/verifier test && npm --prefix packages/verifier run typecheck && npm --prefix packages/cli run typecheck && npm --prefix web run build",
+    "scan:secrets": "node scripts/scan-secrets.mjs"
+  },
+  "devDependencies": {
+    "@qorechain/qorescan": "^0.1.0"
+  }
+}

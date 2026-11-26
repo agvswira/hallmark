@@ -21,6 +21,7 @@ safe outcome, so a regression fails the suite.
 | A4 | Source calls `pqcVerify` through an immutable address; deploy with a fake verifier | **Held**: flags 0, not PQ-guarded | None needed |
 | A5 | Verify an EIP-1967 proxy, then upgrade it | **Gap**: full match with no word about the proxy; the upgrade left the record and code hash unchanged | Proxy detection, read live on every page, badge and CLI run |
 | A6 | Identical code under another contract name | **Held**: partial | None needed |
+| A7 | Return `0x0a01` / `0x0a02` constants or `JUMP` to `0x0a01` without calling a precompile | **Gap**: `detectPqc` checked all `PUSH` values without requiring a call opcode or filtering `JUMP`/`JUMPI` | `scanCallTargets` requires a call opcode and skips `JUMP`/`JUMPI` targets; unit + anvil test A7 |
 | B1 | Claim a contract with `javascript:…` as the repository | **Gap**: the page put the string in `href` | Links only for http(s) URLs; control and bidi characters stripped |
 | B1b | Put ANSI escapes or bidi overrides in on-chain strings, read with the CLI | **Gap**: the CLI printed them raw | CLI strips them, JSON output escapes bidi characters |
 | B2 | Submit the same verification again and again | **Gap**: each one sent a registry transaction, spending the verifier's window (200 transactions) | Exact repeats write nothing ("unchanged") |
@@ -42,6 +43,13 @@ A4 checks the post-quantum report. Hallmark reads precompile use from the deploy
 values outside the metadata trailer), not from the source. A contract whose source calls
 `pqcVerify` through an immutable, deployed with another address, is correctly reported as calling
 neither precompile.
+
+A7 (added 27 Nov) tests the opposite direction: a contract that never executes an external call,
+or only pushes `0x0a01`/`0x0a02` immediately before `JUMP` (`0x56`) / `JUMPI` (`0x57`), must not be
+flagged as PQ-guarded. `scanCallTargets` in `packages/verifier/src/pqc.ts` requires at least one
+call opcode (`CALL`, `CALLCODE`, `DELEGATECALL`, `STATICCALL`) and ignores `PUSH` values followed by
+`JUMP`/`JUMPI`. Tests: `units.test.ts` (opcode cases) and `redteam.test.ts` (live anvil deploy of
+a contract returning `(0x0a01, 0x0a02)`).
 
 ## Proxies (A5)
 
@@ -113,7 +121,6 @@ account's funds through the EVM.
 
 ## What was not attacked
 
-- The `HallmarkRegistry` contract beyond its 30 Foundry tests: no formal verification, no fuzzing
-  beyond the one fuzz test.
+- `HallmarkRegistry` formal verification beyond its 32 Foundry unit/fuzz tests and 5 stateful invariants (`256 × 32 = 8,192` calls per invariant).
 - lib-sourcify and solc themselves: Hallmark relies on them for the match.
 - The QoreX claim flow with a real wallet.
