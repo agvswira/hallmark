@@ -394,3 +394,21 @@ step and that gate noted in `quality-check.md`.
 **Not true of the video:** the four agvswira/attenua records in the registry are from the owner's own account;
 the narration does not present them as other teams'. The opening line about other chains is general context,
 not from the repo, and was shown as such on the review page.
+
+## 2026-11-27: submission hardening, Foundry invariants, QoreScan CBOM, and keyless juror UX
+
+**Owner decided (D13):** asked to fortify Hallmark for Build Before Q-Day submission and maximize award readiness (`Quantum Pass`, `Quantum Campus`, `Best AI-Native Build`, `People's Choice`). Agent: Antigravity IDE (Gemini 4 Neon (High)).
+
+**Agent (reviewer + attacker + builder):**
+- Conducted a full submission and security audit ([`reviews/2026-11-27-submission-hardening.md`](reviews/2026-11-27-submission-hardening.md)) against the fest rubrics and live portal state (`build.qorechain.io/p/hallmark`).
+- **Attack A7 (`060c101`):** found that `detectPqc` checked all `PUSH` values without requiring a call opcode or filtering `JUMP`/`JUMPI` targets; replaced with `scanCallTargets` in `packages/verifier/src/pqc.ts`, filtered `sourceRefs` to detected precompiles, and added unit + live-anvil regression tests (`61/61` verifier tests passing).
+- **RPC, API & secret scan hardening (`060c101`):** added `{ retryCount: 3, retryDelay: 400, timeout: 15_000 }` in `registryReader`/`recordOnchain`, bounded `/api/contracts` to batches of 3 concurrent `r.get()` reads, added `Access-Control-Allow-Origin: *` on public GET routes, and fixed `scripts/scan-secrets.mjs` to match `*_MNEMONIC` and `.env.local`.
+- **Foundry fuzz & stateful invariants (`060c101`):** added 2 boundary/auth fuzz tests in `HallmarkRegistry.t.sol` and 5 stateful invariants (`256 × 32 = 8,192` calls per invariant) in `HallmarkRegistry.invariant.t.sol` (`43/43` Foundry tests passing).
+- **Keyless juror UX (`060c101`):** updated `Home.tsx` so the hero diagram picks a live full-match, claimed, PQ-guarded record; added a 1-click keyless `QuantumGuestbook` sample loader on `/verify` (`Verify.tsx` + `buildInfo.ts`); added a per-contract `npx` check box and Standard JSON Input download on `/c/<address>` (`Contract.tsx`).
+- **QoreScan CBOM & submission pack (`9d88633`):** added root `package.json`, generated CycloneDX 1.6 CBOM (`docs/cbom.json`) via `@qorechain/qorescan`, wrote `scripts/verify-submission.mjs` (`16/16` live keyless checks), `JUDGES.md`, and `docs/SUBMISSION_PACK.md`, and flagged that the demo video (`unveo-out/demo-video.mp4`) is not yet linked on `build.qorechain.io/p/hallmark`.
+
+**Learned / went wrong:**
+- First run of `testFuzz_TextLengthBoundary` failed because `registry.MAX_TEXT_LENGTH()` consumed `vm.prank(verifier)`, and `invariant_FullNeverDowngradedForSameCode` failed on an artificial `codeA → codeB → codeA` swap in the handler; both fixed in `060c101`.
+- Vitest on Windows failed when invoked from a lowercase `d:\` shell path via `cmd /c` (`Cannot read properties of undefined (reading 'config')`); running from `D:\hallmark\packages\verifier` succeeded cleanly (`61/61`).
+
+**Checked:** `npm run test:all` (`43/43` Foundry, `61/61` verifier, CLI/web typecheck & build), `npm run verify` (`16/16`), live `hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4` (`CONFIRMED`), and `node scripts/scan-secrets.mjs`. Local commits only (`git push`, `vercel --prod`, and YouTube/portal updates left for owner approval).

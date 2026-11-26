@@ -10,13 +10,13 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 
 | | |
 |---|---|
-| Agent | Claude Code (desktop app), model Claude Opus 5.5 |
+| Agent | Claude Code (desktop app), model Claude Opus 5.5 (20–23 Nov); Antigravity IDE, Gemini 4 Neon (High) (27 Nov submission hardening) |
 | Agent tools | Shell, file editing, a built-in browser for reading the fest site and docs, web fetch, GitHub CLI (read-only research) |
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role; `unveo` (a free, MIT-licensed skill, version 0.1.1) for the demo video |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |
-| Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), [`docs/ai/redteam.md`](docs/ai/redteam.md) (attacks and outcomes), [`docs/ai/reviews/`](docs/ai/reviews/) (review reports) |
-| Tests so far | 36 Foundry tests (30 for `HallmarkRegistry`, one fuzz; 6 for the `QuantumGuestbook` sample); 59 verifier tests, 23 of them end-to-end on a local chain, including 9 red-team tests that each assert the safe outcome of an attack; all passing |
-| Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana`. Hallmark verified, recorded and claimed itself, also through the production API; `hallmark check` confirms the record from a local recompile; two other public contracts verified from source ([results](packages/verifier/README.md#live-checks-on-qorechain-diana)); the owner deployed, verified and claimed the sample from the Try it page with a real QoreX wallet (deploy `0xbeed8439…a970`, record `0xd944c3ea…1c6e`, claim `0x2ff0b2be…65aa`) |
+| Evidence | [`docs/ai/log.md`](docs/ai/log.md) (dated log), [`docs/ai/ledger.jsonl`](docs/ai/ledger.jsonl) (one line per change), [`docs/ai/redteam.md`](docs/ai/redteam.md) (attacks and outcomes), [`docs/ai/reviews/`](docs/ai/reviews/) (2 review reports), [`docs/cbom.json`](docs/cbom.json) (QoreScan CBOM), [`JUDGES.md`](JUDGES.md) |
+| Tests so far | 43 Foundry tests (32 for `HallmarkRegistry` including 3 fuzz tests, 5 stateful invariants across 256×32 = 8,192 calls each, and 6 for the `QuantumGuestbook` sample); 61 verifier tests across 7 files, 24 of them end-to-end on a local chain, including 10 red-team tests that each assert the safe outcome of an attack; all passing |
+| Live | https://hallmark-jade.vercel.app; registry on `qorechain-diana` (6 contracts full-matched and ML-DSA-87 claimed: `HallmarkRegistry`, `QuantumGuestbook`, and 4 `Attenua` contracts built by the same owner); `hallmark check` confirms the record from a local recompile; `npm run verify` passes 16/16 keyless live checks |
 | Demo video | Made with the `unveo` skill (22–23 Nov): the agent scouted the live app, recorded it in an automated browser, wrote the narration from the repo with a source on every claim, and built the animated scenes. The voiceover is an AI voice (Kokoro, offline), the music is synthesised. The owner chose the voice and the background and approved every scene on unveo's review page. See the log, 23 Nov |
 | AI at runtime | None, by design: a verification result has to be deterministic and reproducible, so no model sits in the verification path |
 
@@ -39,8 +39,8 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | Role | What it does on Hallmark | Evidence |
 |---|---|---|
 | **Builder** | Writes the code in small, tested steps, following [`CLAUDE.md`](CLAUDE.md) | `docs/ai/log.md`, `docs/ai/ledger.jsonl`, `git log` |
-| **Reviewer** | At each milestone a separate review pass (`security-review`, `code-review`) reads the diff; every finding is fixed with a regression test or answered in writing | [`docs/ai/reviews/`](docs/ai/reviews/): first review found 5 issues in the red-team fixes (2 important), all fixed |
-| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | [`docs/ai/redteam.md`](docs/ai/redteam.md): 13 attacks; source attacks held, 7 gaps found and fixed (proxies, stored-source poisoning shown live, link and terminal injection, gas drain, compile cost, and the rate limit, set by the owner in Vercel Firewall) |
+| **Reviewer** | At each milestone a separate review pass reads the diff (`security-review`, `code-review`, and a full submission-readiness audit); every finding is fixed with a regression test or answered in writing | [`docs/ai/reviews/`](docs/ai/reviews/): first review found 5 issues in the red-team fixes; second review (27 Nov) found 7 security, UX and doc gaps, all fixed or flagged |
+| **Attacker** | Tries to make the verifier say "Hallmarked" for code that does not match: edited sources, swapped compiler settings, forged metadata, changed immutables, non-call/jump-target PQC constants, proxies. Hallmark is a trust tool, so a false match is the failure that matters most | [`docs/ai/redteam.md`](docs/ai/redteam.md): 14 attacks; source attacks held, 8 gaps found and fixed (non-call/jump-target PQC constants A7, proxies, stored-source poisoning shown live, link and terminal injection, gas drain, compile cost, and the rate limit, set by the owner in Vercel Firewall) |
 
 ## Workflow
 
@@ -91,6 +91,10 @@ an autonomous testing system. Hallmark uses all three, each with its own evidenc
 | For the demo video, the agent drew the two explainers without their backdrop to stop a ghosting effect; that left black frames at their start and pushed a heading off frame | unveo's QA framing gate on the master | Backdrops restored; the framing gate passes |
 | unveo's generated `chapters.txt` labelled the Verify section with the record step's name, cut mid-word | Reading the published kit before the hand-off | Rewritten from the timeline's real scene start times |
 | Twice, a script the agent wrote through a shell heredoc turned Unicode escapes into raw control and bidi characters inside a regex | Reading the edited line back (once as a broken regex, once as a file flagged binary) | Rewritten with escapes and checked for control bytes |
+| `detectPqc` checked all `PUSH` values without requiring a call opcode or skipping `JUMP`/`JUMPI` targets (**A7**) | Submission hardening audit (`2026-11-27`) | `scanCallTargets` requires a call opcode and skips `JUMP`/`JUMPI` targets; unit + anvil test A7 (`060c101`) |
+| `scripts/scan-secrets.mjs` checked `QORE_MNEMONIC` but missed `HALLMARK_VERIFIER_MNEMONIC` (`*_MNEMONIC`) and `.env.local` | Reading `scan-secrets.mjs` during the hardening audit | Updated pattern to `.*_MNEMONIC` and added `.env.local` (`060c101`; checked 4 local secrets vs 3) |
+| New Foundry boundary fuzz test consumed `vm.prank(verifier)` on `registry.MAX_TEXT_LENGTH()` and invariant ghost state tracked oscillating `codeA → codeB → codeA` swaps | First `forge test` run on the new tests | Hoisted `maxLen` read above `vm.prank`; tracked `activeFullCodeHash` per target (`060c101`) |
+| `README.md` badge note pointed to "The first badge" after the fest badge became first, and `packages/verifier/README.md` still stated `25 tests` | Submission audit against live files (`9d88633`) | Corrected both documents and added `JUDGES.md`, `docs/cbom.json`, and `npm run verify` (`9d88633`) |
 
 This table grows with the project. Commit hashes are added once the commits exist.
 
@@ -102,9 +106,9 @@ D1 to D7 are recorded in [`docs/ai/log.md`](docs/ai/log.md). New decisions are n
 
 ```sh
 git log --format='%h %ad %an %s' --date=iso   # every commit, under the owner's name
-cd contracts && npm install && npm run forge-std && npm test   # 36 tests
-cd packages/verifier && npm install && npm test             # 59 tests, local anvil chain
-node scripts/scan-secrets.mjs                  # the secret scan, on staged files
+npm install && npm run verify                 # 16 keyless live checks (chain, API, CLI, CBOM, docs)
+npm run test:all                              # 43 Foundry + 61 Verifier tests + CLI/Web builds
+node scripts/scan-secrets.mjs                 # the secret scan, on staged files
 npx @agvswira/hallmark check 0xa901ee7138266abc456c8d717fa94b043078b8c4   # recompile locally and compare with the record
 ```
 
