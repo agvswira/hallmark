@@ -3,6 +3,9 @@
 Dated record of each working session: what the agent generated, what the owner decided, and what
 was learned. Newest entries at the bottom. Agent: Claude Code (desktop app), model Claude Opus 5.5.
 
+Section dates are the owner's local time (UTC+8); some headings also give the UTC time, which is what
+`git log` shows.
+
 ## 2026-11-20: the problem and choosing the project
 
 **The problem.** A contract deployed on QoreChain cannot be checked against its source. The fest
@@ -417,3 +420,35 @@ not from the repo, and was shown as such on the review page.
 - Pushed hardening commits to `origin/main` and deployed to Vercel production (`https://hallmark-jade.vercel.app`, live 1-click sample `POST /api/verify` returned `200`, `full`, `pqcFlags: 2`, `unchanged: true`).
 - Bumped `@hallmark/verifier` and `@agvswira/hallmark` to `0.1.1` (`940463e`), verified `npm pack --dry-run` (4 files, 1.1 MB), and the owner published `0.1.1` to npm with 2FA (`npx -y @agvswira/hallmark@0.1.1 check` confirmed exit `0`).
 - Owner uploaded `unveo-out/demo-video.mp4` to [`https://youtu.be/bQ6GsjzvASY`](https://youtu.be/bQ6GsjzvASY) and updated `https://build.qorechain.io/p/hallmark` (`QoreScan`, `QoreX integrations`, `QoreChain SDK`, and `AI-Native` all showing **Verified**).
+
+## 2026-11-29: the AI record made machine-checkable
+
+Agent: Claude Code (desktop app), model Claude Opus 5.5, in a fresh session that had first judged the
+fest's AI_USAGE files blind and found that this one cited commits for only 4 of its 27 mistakes.
+
+**Owner decided (D14):** make this record machine-checkable: build a command that checks it against git
+and the code, run it in CI, and fix whatever it finds.
+
+**Agent (reviewer + builder):**
+- Wrote `scripts/ai-verify.mjs` (`npm run ai:verify`): the ledger against `git log` (commit on HEAD's
+  history, files touched, date), when each ledger line was written (`git blame`), every commit and test
+  named in the mistakes table, the owner decisions here against AI_USAGE.md, the git rules of CLAUDE.md,
+  the claimed test and attack counts against the code, and the links in the AI documents.
+- Added a Proof column to the mistakes table: for each of the 27 rows, the commit that carries the fix
+  (found with `git log -S` and the ledger) and the test that guards it, or why there is none.
+- Added the owner decisions table (D1–D14) and the five most important catches to AI_USAGE.md.
+- Added `.github/workflows/ci.yml`: `ai:verify` with full history, and `npm run test:all` (`c49e261`,
+  together with the script).
+
+**Learned / went wrong:**
+- The first run of `ai:verify` failed 34 checks. Most were the missing commit and test references. Two
+  were real errors in the ledger: its schema said dates were UTC while every entry used local time
+  (UTC+8), and three entries (L-0026, L-0028, L-0034) listed report files that were committed one
+  commit later, in `40fa8d4` and `196bc57`. The schema now says UTC+8 and the three lists match git.
+- Two failures were the script's own: it skipped the red-team row `W`, and it treated text after
+  "no test" as test names. Both fixed before relying on its result.
+- The audit also found that the 26 Nov hardening went in as two batch commits, against CLAUDE.md's
+  "one commit per logical change". History is not rewritten, because the ledger cites those hashes.
+
+**Checked:** `npm run ai:verify` passes all 13 checks; with a wrong hash, an invented test name or a
+wrong test count put into AI_USAGE.md on purpose, it fails on exactly those rows (then restored).

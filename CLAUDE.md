@@ -19,6 +19,10 @@ These rules are part of the project's AI workflow and are described in AI_USAGE.
 - Append one line per logical change to `docs/ai/ledger.jsonl` (schema in `docs/ai/README.md`).
 - Record AI mistakes and how they were caught in AI_USAGE.md, with commit hashes.
 - Write only what happened. Do not overclaim, do not attribute AI work to the owner or the reverse.
+- Every row of the mistakes table names its fix commit and the test that guards it, or says "no test:"
+  and why. A row written before its commit says `pending-commit`; fill in the hash in the next commit.
+- Run `npm run ai:verify` before committing documentation of AI use; it must pass. Dates in the log and
+  ledger are the owner's local time (UTC+8).
 
 ## Code
 - Contracts: `cd contracts && npm test` (Foundry via the npm-packaged binary, see `scripts/forge.mjs`).
