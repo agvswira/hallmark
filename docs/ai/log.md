@@ -462,3 +462,8 @@ lockfile, written by npm 11.6 on Windows, lacked `@emnapi/core` and `@emnapi/run
 rolldown build, through vitest and vite) and still said 0.1.0. Reproduced with `npx npm@11.19.1 ci
 --dry-run`, regenerated the lockfile with that npm (`b66b03f`), and dry-ran `npm ci` for all four packages
 before pushing again. The owner pointed the agent at the failed run.
+
+**Second CI run:** green (`eb40542`): `ai:verify` 13/13, 43 Foundry tests, 61 verifier tests, CLI and web
+build. The owner asked for the two remaining Node 20 deprecation warnings to be cleared and for a CI
+badge: actions moved to v7, which runs on Node 24 (`8dafa53`), and the README badge row now ends with the
+CI badge, so the note about "the second badge" still points at Hallmark's own badge.

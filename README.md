@@ -12,6 +12,7 @@ Source verification and a post-quantum report for contracts on `qorechain-diana`
 [![Hallmark](https://hallmark-jade.vercel.app/api/badge?address=0xa901ee7138266abc456c8d717fa94b043078b8c4)](https://hallmark-jade.vercel.app/c/0xa901ee7138266abc456c8d717fa94b043078b8c4)
 [![npm](https://img.shields.io/npm/v/@agvswira/hallmark?label=npx%20%40agvswira%2Fhallmark)](https://www.npmjs.com/package/@agvswira/hallmark)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![CI: tests and ai:verify](https://github.com/agvswira/hallmark/actions/workflows/ci.yml/badge.svg)](https://github.com/agvswira/hallmark/actions/workflows/ci.yml)
 
 [**Live app**](https://hallmark-jade.vercel.app) · [**Demo video**](https://youtu.be/bQ6GsjzvASY) · [**Try it with QoreX**](https://hallmark-jade.vercel.app/try) · [**5-Min Judge Walkthrough**](JUDGES.md) · [CLI](packages/cli/README.md) · [CBOM](docs/cbom.json) · [How the AI was used](AI_USAGE.md)
 
