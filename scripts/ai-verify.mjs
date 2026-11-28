@@ -153,8 +153,12 @@ ledger.forEach((e, i) => {
     if (e.date !== commitDay && e.date !== dayBefore) {
       problems.push(`date ${e.date} but ${cited} is ${commitDay} (UTC+8)`);
     }
-    if (addedBy && addedBy !== "0".repeat(40)) {
-      const added = commitInfo(addedBy.slice(0, 12));
+    // How long after the change the entry was first written. Blame would give the last edit, so a
+    // later correction of a line would look like a late entry; the first commit containing the id is
+    // when it was written.
+    const first = git("log", "--format=%H", "--reverse", "-S", `"id":"${e.id}"`, "--", ledgerRel).split("\n")[0];
+    if (first) {
+      const added = commitInfo(first.slice(0, 12));
       if (added) lagHours.push((new Date(added.date) - new Date(c.date)) / 3.6e6);
     }
   }

@@ -447,6 +447,10 @@ and the code, run it in CI, and fix whatever it finds.
   commit later, in `40fa8d4` and `196bc57`. The schema now says UTC+8 and the three lists match git.
 - Two failures were the script's own: it skipped the red-team row `W`, and it treated text after
   "no test" as test names. Both fixed before relying on its result.
+- After the ledger corrections were committed, `ai:verify` reported entries "written 177 hours" after
+  their change: it timed each entry by `git blame`, which gives the last edit, so the three corrected
+  lines looked late. It now times each entry by the first commit that contains its id (median 0 hours,
+  longest 39.2 hours).
 - The audit also found that the 26 Nov hardening went in as two batch commits, against CLAUDE.md's
   "one commit per logical change". History is not rewritten, because the ledger cites those hashes.
 
