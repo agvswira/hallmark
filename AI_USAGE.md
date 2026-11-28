@@ -14,7 +14,7 @@ are checked in repositories by hand. Hallmark makes that check automatic and pub
 
 | | |
 |---|---|
-| Agent | Claude Code (desktop app), model Claude Opus 5.5 (20–23 Nov); Antigravity IDE, model labelled "Gemini 4 Neon (High)" in its model picker (27 Nov UTC+8 = 26 Nov UTC, submission hardening); Claude Code, Claude Opus 5.5 (29 Nov, audit of this record and `ai:verify`) |
+| Agent | Claude Code (desktop app), model Claude Opus 5.5 (20–23 Nov); Antigravity IDE, model labelled "Gemini 4 Neon High" in its model picker, Orchestrator mode ([screenshot](docs/ai/antigravity-model-picker.png), taken 29 Nov) (27 Nov UTC+8 = 26 Nov UTC, submission hardening); Claude Code, Claude Opus 5.5 (29 Nov, audit of this record and `ai:verify`) |
 | Agent tools | Shell, file editing, a built-in browser for reading the fest site and docs, web fetch, GitHub CLI (read-only research) |
 | Skills | `modern-web-guidance` for the web app (guides applied: forms, validate-input-after-interaction, copy-button, dark-mode, responsive-table, spinner, scroll-entry-exit-effects, dynamic-sibling-animations, visually-stable-font-fallbacks, typography); `security-review` and `code-review` for the reviewer role; `unveo` (a free, MIT-licensed skill, version 0.1.1) for the demo video |
 | Span | From 20 Nov 2026; see [`docs/ai/log.md`](docs/ai/log.md) |

@@ -467,3 +467,8 @@ before pushing again. The owner pointed the agent at the failed run.
 build. The owner asked for the two remaining Node 20 deprecation warnings to be cleared and for a CI
 badge: actions moved to v7, which runs on Node 24 (`8dafa53`), and the README badge row now ends with the
 CI badge, so the note about "the second badge" still points at Hallmark's own badge.
+
+**Model label (same night):** the owner sent a screenshot of Antigravity's model picker, showing
+"Orchestrator" and "Gemini 4 Neon High"; saved as
+[`antigravity-model-picker.png`](antigravity-model-picker.png) and linked from AI_USAGE.md. It was taken
+on 29 Nov, after the 27 Nov session it documents, so it shows the label the IDE uses, not that session.
