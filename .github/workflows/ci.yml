@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ai-record:
+    name: AI record (npm run ai:verify)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the check compares the ledger with the full git history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm run ai:verify
+
+  tests:
+    name: Foundry, verifier, CLI and web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: |
+          npm ci --prefix contracts
+          npm ci --prefix packages/verifier
+          npm ci --prefix packages/cli
+          npm ci --prefix web
+      - name: forge-std
+        run: npm --prefix contracts run forge-std
+      - name: Test and build
+        run: npm run test:all
