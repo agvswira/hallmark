@@ -456,3 +456,9 @@ and the code, run it in CI, and fix whatever it finds.
 
 **Checked:** `npm run ai:verify` passes all 13 checks; with a wrong hash, an invented test name or a
 wrong test count put into AI_USAGE.md on purpose, it fails on exactly those rows (then restored).
+
+**First CI run (same night):** `ai:verify` passed on GitHub; the test job failed in `npm ci`: the verifier
+lockfile, written by npm 11.6 on Windows, lacked `@emnapi/core` and `@emnapi/runtime` (optional wasm32
+rolldown build, through vitest and vite) and still said 0.1.0. Reproduced with `npx npm@11.19.1 ci
+--dry-run`, regenerated the lockfile with that npm (`b66b03f`), and dry-ran `npm ci` for all four packages
+before pushing again. The owner pointed the agent at the failed run.
